@@ -11,11 +11,13 @@ import OutputNode from "./OutputNode";
 import { CustomNodes } from "./Nodes";
 import WireEdge from "./WireEdge";
 import AndNode from "./AndNode";
+import OrNode from "./OrNode";
 
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
   and: AndNode,
+  or: OrNode,
 };
 
 const edgeTypes = {
@@ -37,6 +39,7 @@ const initialNodes: CustomNodes[] = [
   },
   { id: "3", type: "output", position: { x: 200, y: 50 }, data: {} },
   { id: "4", type: "and", position: { x: 100, y: 50 }, data: { state: false } },
+  { id: "5", type: "or", position: { x: 100, y: 150 }, data: { state: false } },
 ];
 const initialEdges: WireEdge[] = [
   {

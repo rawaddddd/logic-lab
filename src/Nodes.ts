@@ -12,14 +12,20 @@ export type AndNodeData = {
 
 export type AndNode = Node<AndNodeData, "and">;
 
+export type OrNodeData = {
+    state: boolean;
+};
+
+export type OrNode = Node<AndNodeData, "or">;
+
 export type OutputNodeData = {};
 
 export type OutputNode = Node<OutputNodeData, "output">;
 
-export type CustomNodes = InputNode | AndNode | OutputNode;
+export type CustomNodes = InputNode | AndNode | OrNode | OutputNode;
 
-export type NodeType = "input" | "and" | "output";
+export type NodeType = "input" | "and" | "or" | "output";
 
-export function isInputNode(node: any): node is InputNode | AndNode {
-    return !node ? false : node.type === "input" || node.type === "and"
+export function isInputNode(node: any): node is InputNode | AndNode | OrNode {
+    return !node ? false : node.type === "input" || node.type === "and" || node.type === "or"
 }
