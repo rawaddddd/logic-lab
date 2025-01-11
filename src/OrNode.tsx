@@ -20,14 +20,16 @@ function OrNode({ id, data: { state } }: NodeProps<OrNode>) {
     type: "target",
     id: "input-2",
   });
-  const nodesData = useNodesData<CustomNodes>(
-    input1Connections
-      .concat(input2Connections)
-      .map((connection) => connection.source)
+  const nodesData1 = useNodesData<CustomNodes>(
+    input1Connections.map((connection) => connection.source)
   );
-  const inputNodes = nodesData.filter(isInputNode);
-  const input1 = inputNodes.at(0)?.data.state ?? false;
-  const input2 = inputNodes.at(1)?.data.state ?? false;
+  const nodesData2 = useNodesData<CustomNodes>(
+    input2Connections.map((connection) => connection.source)
+  );
+  const inputNodes1 = nodesData1.filter(isInputNode);
+  const inputNodes2 = nodesData2.filter(isInputNode);
+  const input1 = inputNodes1.at(0)?.data.state ?? false;
+  const input2 = inputNodes2.at(0)?.data.state ?? false;
   const output = input1 || input2;
 
   useEffect(() => {
@@ -54,7 +56,7 @@ function OrNode({ id, data: { state } }: NodeProps<OrNode>) {
             type="target"
             position={Position.Left}
             className={`!relative w-2 h-2 border-[1px] border-white rounded-lg ${
-              state ? "!bg-red-500" : "!bg-gray-500"
+              input1 ? "!bg-red-500" : "!bg-gray-500"
             }`}
           />
         </div>
@@ -64,7 +66,7 @@ function OrNode({ id, data: { state } }: NodeProps<OrNode>) {
             type="target"
             position={Position.Left}
             className={`!relative w-2 h-2 border-[1px] border-white rounded-lg ${
-              state ? "!bg-red-500" : "!bg-gray-500"
+              input2 ? "!bg-red-500" : "!bg-gray-500"
             }`}
           />
         </div>

@@ -48,7 +48,7 @@ function NotNode({ id, data: { state } }: NodeProps<NotNode>) {
             type="target"
             position={Position.Left}
             className={`!relative w-2 h-2 border-[1px] border-white rounded-lg ${
-              state ? "!bg-red-500" : "!bg-gray-500"
+              input ? "!bg-red-500" : "!bg-gray-500"
             }`}
           />
         </div>
