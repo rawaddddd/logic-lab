@@ -1,5 +1,6 @@
 import {
   addEdge,
+  Connection,
   ReactFlow,
   useEdgesState,
   useNodesState,
@@ -9,10 +10,12 @@ import InputNode from "./InputNode";
 import OutputNode from "./OutputNode";
 import { CustomNodes } from "./Nodes";
 import WireEdge from "./WireEdge";
+import AndNode from "./AndNode";
 
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
+  and: AndNode,
 };
 
 const edgeTypes = {
@@ -26,14 +29,32 @@ const initialNodes: CustomNodes[] = [
     position: { x: 0, y: 0 },
     data: { state: true },
   },
-  { id: "2", type: "output", position: { x: 0, y: 100 }, data: {} },
+  {
+    id: "2",
+    type: "input",
+    position: { x: 0, y: 100 },
+    data: { state: true },
+  },
+  { id: "3", type: "output", position: { x: 200, y: 50 }, data: {} },
+  { id: "4", type: "and", position: { x: 100, y: 50 }, data: { state: false } },
 ];
 const initialEdges: WireEdge[] = [
   {
-    id: "e1-2",
-    type: "custom",
+    id: "1->4",
     source: "1",
-    target: "2",
+    target: "4",
+    targetHandle: "input-1",
+  },
+  {
+    id: "2->4",
+    source: "2",
+    target: "4",
+    targetHandle: "input-2",
+  },
+  {
+    id: "4->3",
+    source: "4",
+    target: "3",
   },
 ];
 
@@ -42,7 +63,7 @@ function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const onConnect = useCallback(
-    (params: any) => setEdges((eds) => addEdge<WireEdge>(params, eds)),
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
@@ -57,6 +78,7 @@ function App() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        defaultEdgeOptions={{ type: "custom" }}
       />
     </div>
   );
