@@ -4,6 +4,7 @@ import {
   ReactFlow,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from "@xyflow/react";
 import { useCallback } from "react";
 import InputNode from "./InputNode";
@@ -13,6 +14,7 @@ import WireEdge from "./WireEdge";
 import AndNode from "./AndNode";
 import OrNode from "./OrNode";
 import NotNode from "./NotNode";
+import { useCopyPaste } from "./useCopyPaste";
 
 const nodeTypes = {
   input: InputNode,
@@ -70,6 +72,8 @@ const initialEdges: WireEdge[] = [
 ];
 
 function App() {
+  const rfInstance = useReactFlow();
+  useCopyPaste(rfInstance);
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
