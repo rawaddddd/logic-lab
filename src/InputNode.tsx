@@ -12,15 +12,23 @@ function InputNode({ id, data: { state } }: NodeProps<InputNode>) {
     <div
       onClick={toggle}
       className={`p-4 rounded-sm border-2 ${
-        state ? "border-red-500" : "border-gray-500"
+        state === undefined
+          ? "border-gray-800"
+          : state
+          ? "border-red-500"
+          : "border-gray-500"
       }`}
     >
-      {state ? "🔴" : "⚪"}
+      {state === undefined ? "⚫" : state ? "🔴" : "⚪"}
       <Handle
         type="source"
         position={Position.Right}
         className={`w-2 h-2 border-[1px] border-white rounded-lg ${
-          state ? "!bg-red-500" : "!bg-gray-500"
+          state === undefined
+            ? "!bg-gray-800"
+            : state
+            ? "!bg-red-500"
+            : "!bg-gray-500"
         }`}
       />
     </div>

@@ -1,13 +1,22 @@
 import {
   BaseEdge,
   type EdgeProps,
-  type Edge,
+  type Edge as RfEdge,
   getSmoothStepPath,
   useNodesData,
 } from "@xyflow/react";
-import { InputNode } from "./Nodes";
+import { isChipNode, isInputNode } from "./Nodes";
 
-type WireEdge = Edge<{}, "custom">;
+type WireEdgeData = {
+  sourceHandleIndex: number;
+};
+
+type Edge<EdgeData, EdgeType extends string | undefined> = RfEdge<
+  {},
+  EdgeType
+> & { data: EdgeData } & { type: EdgeType };
+
+type WireEdge = Edge<WireEdgeData, "custom">;
 
 function WireEdge({
   id,
@@ -18,8 +27,14 @@ function WireEdge({
   sourcePosition,
   targetPosition,
   source,
+  data: { sourceHandleIndex },
 }: EdgeProps<WireEdge>) {
-  const state = useNodesData<InputNode>(source)!.data.state;
+  const node = useNodesData(source);
+  const state = isInputNode(node)
+    ? node.data.state
+    : isChipNode(node)
+    ? node.data.outputs[sourceHandleIndex]
+    : undefined;
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -34,7 +49,11 @@ function WireEdge({
       id={id}
       path={edgePath}
       className={`!stroke-2 ${
-        state ? "!stroke-red-500 [stroke-dasharray:5]" : "!stroke-gray-500"
+        state === undefined
+          ? "!stroke-gray-800"
+          : state
+          ? "!stroke-red-500 [stroke-dasharray:5]"
+          : "!stroke-gray-500"
       }`}
       style={{
         animation: "dashdraw 0.5s linear infinite",

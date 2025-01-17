@@ -1,37 +1,41 @@
 import type { Node } from "@xyflow/react";
+import { Bit } from "./Simulation";
 
 export type InputNodeData = {
-    state: boolean;
+  state: Bit;
+  index: number;
 };
 
 export type InputNode = Node<InputNodeData, "input">;
 
-export type AndNodeData = {
-    state: boolean;
+export type ChipNodeData = {
+  name: string;
+  inputs: Bit[];
+  outputs: Bit[];
+  index: number; // compIO index in parent circuit's components array
 };
 
-export type AndNode = Node<AndNodeData, "and">;
+export type ChipNode = Node<ChipNodeData, "chip">;
 
-export type OrNodeData = {
-    state: boolean;
+export type OutputNodeData = {
+  state: Bit;
+  index: number;
 };
-
-export type OrNode = Node<AndNodeData, "or">;
-
-export type NotNodeData = {
-    state: boolean;
-};
-
-export type NotNode = Node<AndNodeData, "not">;
-
-export type OutputNodeData = {};
 
 export type OutputNode = Node<OutputNodeData, "output">;
 
-export type CustomNodes = InputNode | AndNode | OrNode | NotNode | OutputNode;
+export type CustomNodes = InputNode | ChipNode | OutputNode;
 
-export type NodeType = "input" | "and" | "or" | "not" | "output";
+export type NodeType = "input" | "chip" | "output";
 
-export function isInputNode(node: any): node is InputNode | AndNode | OrNode | NotNode {
-    return !node ? false : node.type === "input" || node.type === "and" || node.type === "or" || node.type === "not"
+export function isInputNode(node: any): node is InputNode {
+  return !node ? false : node.type === "input";
+}
+
+export function isChipNode(node: any): node is ChipNode {
+  return !node ? false : node.type === "chip";
+}
+
+export function isOutputNode(node: any): node is OutputNode {
+  return !node ? false : node.type === "output";
 }
