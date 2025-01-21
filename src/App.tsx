@@ -5,6 +5,7 @@ import WireEdge from "./WireEdge";
 import ChipNode from "./ChipNode";
 import { SimulationStore, useSimulationStore } from "./store";
 import { useShallow } from "zustand/shallow";
+import { useCopyPaste } from "./useCopyPaste";
 
 const nodeTypes = {
   input: InputNode,
@@ -22,16 +23,24 @@ const selector = (state: SimulationStore) => ({
   onNodesChange: state.onNodesChange,
   onEdgesChange: state.onEdgesChange,
   onConnect: state.onConnect,
+  setNodes: state.setNodes,
+  setEdges: state.setEdges,
 });
 
 function App() {
-  // const rfInstance = useReactFlow();
-  // useCopyPaste(rfInstance);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect } =
-    useSimulationStore(useShallow(selector));
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    setNodes,
+    setEdges,
+  } = useSimulationStore(useShallow(selector));
 
   const circuit = useSimulationStore((state) => state.circuit);
   const updateCircuit = useSimulationStore((state) => state.updateCircuit);
+  useCopyPaste(circuit, setNodes, setEdges);
 
   return (
     <div className="w-screen h-screen">

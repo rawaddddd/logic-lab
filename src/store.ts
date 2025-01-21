@@ -78,6 +78,18 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           get().circuit.components[node.data.index].extraProperties.position =
             change.position;
         }
+      } else if (change.type === "select") {
+        const node = get().nodes.find((node) => node.id === change.id)!;
+        if (isInputNode(node)) {
+          get().circuit.inputPins[node.data.index].extraProperties.selected =
+            change.selected;
+        } else if (isOutputNode(node)) {
+          get().circuit.outputPins[node.data.index].extraProperties.selected =
+            change.selected;
+        } else if (isChipNode(node)) {
+          get().circuit.components[node.data.index].extraProperties.selected =
+            change.selected;
+        }
       }
     }
     set({

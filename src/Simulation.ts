@@ -1,3 +1,5 @@
+import clone from "clone";
+
 export type Bit = boolean | undefined;
 
 export interface Index {
@@ -17,6 +19,7 @@ type ExtraProperties = {
     x: number;
     y: number;
   };
+  selected?: boolean;
 };
 
 interface IOPin {
@@ -123,6 +126,121 @@ export class Circuit implements Component {
         }));
       }
     }
+  }
+
+  public getInternalConnections(
+    inputPinIndices: number[],
+    outputPinIndices: number[],
+    componentIndices: number[]
+  ) {
+    const inputConnections = inputPinIndices.map((inputIndex) =>
+      this.inputPins[inputIndex].connections.filter((connection) =>
+        componentIndices.includes(connection.componentIndex)
+      )
+    );
+
+    const outputConnections = outputPinIndices.map((outputIndex) =>
+      this.outputPins[outputIndex].connections.filter((connection) =>
+        componentIndices.includes(connection.componentIndex)
+      )
+    );
+
+    const componentConnections = componentIndices.map((componentIndex) =>
+      this.components[componentIndex].connections.map((connection) =>
+        connection.filter((connection) =>
+          componentIndices.includes(connection.componentIndex)
+        )
+      )
+    );
+
+    return {
+      inputConnections,
+      outputConnections,
+      componentConnections,
+    };
+  }
+
+  public duplicateComponents(
+    inputPinIndices: number[],
+    outputPinIndices: number[],
+    componentIndices: number[]
+  ) {
+    const { inputConnections, outputConnections, componentConnections } =
+      this.getInternalConnections(
+        inputPinIndices,
+        outputPinIndices,
+        componentIndices
+      );
+
+    const newInputPinIndices = new Map<number, number>();
+    inputPinIndices.forEach((originalIndex, index) =>
+      newInputPinIndices.set(originalIndex, this.inputPins.length + index)
+    );
+    const newOutputPinIndices = new Map<number, number>();
+    outputPinIndices.forEach((originalIndex, index) =>
+      newOutputPinIndices.set(originalIndex, this.outputPins.length + index)
+    );
+    const newComponentIndices = new Map<number, number>();
+    componentIndices.forEach((originalIndex, index) =>
+      newComponentIndices.set(originalIndex, this.components.length + index)
+    );
+
+    const newInputConnections = inputConnections.map((inputPin) =>
+      inputPin.map(
+        (connection) =>
+          ({
+            ...connection,
+            componentIndex: newComponentIndices.get(connection.componentIndex)!,
+          } as Index)
+      )
+    );
+    const newOutputConnections = outputConnections.map((outputPin) =>
+      outputPin.map(
+        (connection) =>
+          ({
+            ...connection,
+            componentIndex: newComponentIndices.get(connection.componentIndex)!,
+          } as Index)
+      )
+    );
+    const newComponentConnections = componentConnections.map((component) =>
+      component.map((outputPin) =>
+        outputPin.map(
+          (connection) =>
+            ({
+              ...connection,
+              componentIndex: newComponentIndices.get(
+                connection.componentIndex
+              )!,
+            } as Index)
+        )
+      )
+    );
+
+    inputPinIndices.forEach((inputPinIndex) => {
+      const inputPin = {
+        ...clone(this.inputPins[inputPinIndex]),
+        connections: newInputConnections[inputPinIndex] ?? [],
+      };
+      console.log(newInputConnections);
+      console.log(inputPin);
+      this.inputPins.push(inputPin);
+    });
+    outputPinIndices.forEach((outputPinIndex) => {
+      const outputPin = {
+        ...clone(this.outputPins[outputPinIndex]),
+        connections: newOutputConnections[outputPinIndex] ?? [],
+      };
+      console.log(outputPin);
+      this.outputPins.push(outputPin);
+    });
+    componentIndices.forEach((componentIndex) => {
+      const newComponent = new CompIO(
+        this.components[componentIndex].component
+      );
+      newComponent.connections = newComponentConnections[componentIndex];
+      this.components.push(newComponent);
+    });
   }
 
   public addComponent(component: CompIO) {

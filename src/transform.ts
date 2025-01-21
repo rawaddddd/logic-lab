@@ -17,6 +17,7 @@ export function circuitToFlow(circuit: Circuit): {
         x: 200 * index,
         y: 200,
       },
+      selected: component.extraProperties.selected,
       data: {
         name: component.component.name,
         inputs: component.inputs,
@@ -32,6 +33,7 @@ export function circuitToFlow(circuit: Circuit): {
       id: `input-${index}`,
       type: "input",
       position: inputPin.extraProperties.position ?? { x: 100 * index, y: 0 },
+      selected: inputPin.extraProperties.selected,
       data: { state: inputPin.value, index },
     });
   });
@@ -45,6 +47,7 @@ export function circuitToFlow(circuit: Circuit): {
         x: 100 * index,
         y: 400,
       },
+      selected: outputPin.extraProperties.selected,
       data: { state: outputPin.value, index },
     });
   });
