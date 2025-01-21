@@ -90,6 +90,15 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           get().circuit.components[node.data.index].extraProperties.selected =
             change.selected;
         }
+      } else if (change.type === "remove") {
+        const node = get().nodes.find((node) => node.id === change.id)!;
+        if (isInputNode(node)) {
+          get().circuit.removeInputPin(node.data.index);
+        } else if (isOutputNode(node)) {
+          get().circuit.removeOutputPin(node.data.index);
+        } else if (isChipNode(node)) {
+          get().circuit.removeComponent(node.data.index);
+        }
       }
     }
     set({

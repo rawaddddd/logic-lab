@@ -102,19 +102,49 @@ export class Circuit implements Component {
   }
 
   public removeComponent(indexToRemove: number) {
+    // TODO replace the deleted element with the last element in the array instead of shifting all elements
+    // then replace the indices of the last element instead of decrementing all of the indices
     // remove component
     this.components.splice(indexToRemove, 1);
 
     // remove connections to component
+    for (let inputPin of this.inputPins) {
+      inputPin.connections = inputPin.connections.filter(
+        (connection) => connection.componentIndex !== indexToRemove
+      );
+    }
+    for (let outputPin of this.outputPins) {
+      outputPin.connections = outputPin.connections.filter(
+        (connection) => connection.componentIndex !== indexToRemove
+      );
+    }
     for (let component of this.components) {
       for (let connections of component.connections) {
         connections = connections.filter(
-          (connection) => connection.componentIndex != indexToRemove
+          (connection) => connection.componentIndex !== indexToRemove
         );
       }
     }
 
     // decrement indices of connections to components after the component to delete
+    for (let inputPin of this.inputPins) {
+      inputPin.connections = inputPin.connections.map((connection) => ({
+        ...connection,
+        componentId:
+          connection.componentIndex > indexToRemove
+            ? connection.componentIndex - 1
+            : connection.componentIndex,
+      }));
+    }
+    for (let outputPin of this.outputPins) {
+      outputPin.connections = outputPin.connections.map((connection) => ({
+        ...connection,
+        componentId:
+          connection.componentIndex > indexToRemove
+            ? connection.componentIndex - 1
+            : connection.componentIndex,
+      }));
+    }
     for (let component of this.components) {
       for (let connections of component.connections) {
         connections = connections.map((connection) => ({
@@ -126,6 +156,14 @@ export class Circuit implements Component {
         }));
       }
     }
+  }
+
+  public removeInputPin(indexToRemove: number) {
+    this.inputPins.splice(indexToRemove, 1);
+  }
+
+  public removeOutputPin(indexToRemove: number) {
+    this.outputPins.splice(indexToRemove, 1);
   }
 
   public getInternalConnections(
