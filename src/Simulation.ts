@@ -339,7 +339,7 @@ export class Circuit implements Component {
   }
 }
 
-export function not(input: [Bit]): Bit[] {
+export function not(input: Bit[]): Bit[] {
   if (input[0] === undefined) {
     return [undefined];
   }
@@ -393,3 +393,11 @@ export function nor(input: Bit[]): Bit[] {
   }
   return [true];
 }
+
+export const builtinCircuits: Component[] = [
+  { name: "NOT", numInputs: 1, numOutputs: 1, update: not },
+  { name: "AND", numInputs: 2, numOutputs: 1, update: and },
+  { name: "NAND", numInputs: 2, numOutputs: 1, update: nand },
+  { name: "OR", numInputs: 2, numOutputs: 1, update: or },
+  { name: "NOR", numInputs: 2, numOutputs: 1, update: nor },
+];
