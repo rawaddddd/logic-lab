@@ -260,8 +260,6 @@ export class Circuit implements Component {
         ...clone(this.inputPins[inputPinIndex]),
         connections: newInputConnections[inputPinIndex] ?? [],
       };
-      console.log(newInputConnections);
-      console.log(inputPin);
       this.inputPins.push(inputPin);
     });
     outputPinIndices.forEach((outputPinIndex) => {
@@ -269,7 +267,6 @@ export class Circuit implements Component {
         ...clone(this.outputPins[outputPinIndex]),
         connections: newOutputConnections[outputPinIndex] ?? [],
       };
-      console.log(outputPin);
       this.outputPins.push(outputPin);
     });
     componentIndices.forEach((componentIndex) => {

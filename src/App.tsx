@@ -6,6 +6,13 @@ import ChipNode from "./ChipNode";
 import { SimulationStore, useSimulationStore } from "./store";
 import { useShallow } from "zustand/shallow";
 import { useCopyPaste } from "./useCopyPaste";
+import {
+  IconExposurePlus1,
+  IconPlayerPauseFilled,
+  IconPlayerPlayFilled,
+} from "@tabler/icons-react";
+import { useState } from "react";
+import useInterval from "./useInterval";
 
 const nodeTypes = {
   input: InputNode,
@@ -39,8 +46,26 @@ function App() {
   } = useSimulationStore(useShallow(selector));
 
   const circuit = useSimulationStore((state) => state.circuit);
-  const updateCircuit = useSimulationStore((state) => state.updateCircuit);
+  const updateCircuit1 = useSimulationStore((state) => state.updateCircuit);
+  const updateCircuit = () => {
+    // console.log(circuit);
+    // console.log(
+    //   "input pins",
+    //   circuit.inputPins.map((inputPin) => inputPin.value)
+    // );
+    // console.log(
+    //   "output pins",
+    //   circuit.outputPins.map((outputPin) => outputPin.value)
+    // );
+    updateCircuit1(circuit.inputPins.map((inputPin) => inputPin.value));
+  };
+
   useCopyPaste(circuit, setNodes, setEdges);
+
+  const [playing, setPlaying] = useState(false);
+  const [tickRate, setTickRate] = useState(60);
+
+  useInterval(() => updateCircuit(), playing ? 1000 / tickRate : null);
 
   return (
     <div className="w-screen h-screen">
@@ -55,25 +80,57 @@ function App() {
         fitView
         defaultEdgeOptions={{ type: "custom", data: { sourceHandleIndex: 0 } }}
       >
-        <Panel>
-          <button
-            onClick={() => {
-              // console.log(circuit);
-              // console.log(
-              //   "input pins",
-              //   circuit.inputPins.map((inputPin) => inputPin.value)
-              // );
-              // console.log(
-              //   "output pins",
-              //   circuit.outputPins.map((outputPin) => outputPin.value)
-              // );
-              updateCircuit(
-                circuit.inputPins.map((inputPin) => inputPin.value)
-              );
-            }}
-          >
-            Tick
-          </button>
+        <Panel position="bottom-center">
+          <div className="flex flex-row items-center shadow-md rounded-md border bg-white">
+            <div className="flex flex-row py-2 px-4 items-center space-x-2">
+              <label
+                htmlFor="tick-range"
+                className="text-nowrap block text-sm font-medium text-gray-500"
+              >
+                Ticks per second:
+              </label>
+              <div>
+                <input
+                  id="tick-range"
+                  type="range"
+                  defaultValue={60}
+                  min={1}
+                  max={100}
+                  value={tickRate}
+                  className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+                  onChange={(e) => {
+                    setTickRate(Number(e.target.value));
+                    console.log(tickRate);
+                  }}
+                />
+                <div className="flex flex-row justify-between">
+                  <span className="text-xs text-gray-500">1</span>
+                  <span className="text-xs text-gray-500">100</span>
+                </div>
+              </div>
+            </div>
+            <button
+              className="px-4 py-2 rounded-e-md border-l disabled:cursor-not-allowed disabled:text-gray-300"
+              onClick={() => {
+                setPlaying(!playing);
+              }}
+            >
+              {playing ? (
+                <IconPlayerPauseFilled className="text-gray-500" />
+              ) : (
+                <IconPlayerPlayFilled className="text-gray-500" />
+              )}
+            </button>
+            <button
+              className="group px-4 py-2 rounded-e-md border-l disabled:cursor-not-allowed"
+              disabled={playing}
+              onClick={() => {
+                updateCircuit();
+              }}
+            >
+              <IconExposurePlus1 className="text-gray-500 group-disabled:text-gray-300" />
+            </button>
+          </div>
         </Panel>
       </ReactFlow>
     </div>
