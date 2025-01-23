@@ -106,11 +106,78 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     });
   },
   onEdgesChange: (changes) => {
+    // for (const change of changes) {
+    //   if (change.type === "remove") {
+    //     const node = get().nodes.find((node) => node.id === change.id);
+    //     if (isInputNode(node)) {
+    //       get().circuit.removeInputPin(node.data.index);
+    //     } else if (isOutputNode(node)) {
+    //       get().circuit.removeOutputPin(node.data.index);
+    //     } else if (isChipNode(node)) {
+    //       get().circuit.removeComponent(node.data.index);
+    //     }
+    //   }
+    // }
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
   },
   onConnect: (connection) => {
+    console.log(connection);
+    const sourceNode = get().nodes.find(
+      (node) => node.id === connection.source
+    )!;
+    const targetNode = get().nodes.find(
+      (node) => node.id === connection.target
+    )!;
+
+    if (isInputNode(sourceNode)) {
+      if (!isChipNode(targetNode)) {
+        console.log(
+          "Connecting input pin directly to output pin is not supported yet."
+        );
+        return;
+      }
+      if (connection.targetHandle === null) {
+        console.log("Target handle ID not defined.");
+        return;
+      }
+      // TODO replace this with a more robust way to convert handle ids to indices
+      // maybe by storing a map of id->index (or handle info in general) in the node
+      const targetHandleIndex = Number(connection.targetHandle.split("-")[1]);
+      get().circuit.connectInputPin(
+        sourceNode.data.index,
+        targetNode.data.index,
+        targetHandleIndex
+      );
+    } else if (isChipNode(sourceNode)) {
+      if (connection.sourceHandle === null) {
+        console.log("Source handle ID not defined.");
+        return;
+      }
+      const sourceHandleIndex = Number(connection.sourceHandle.split("-")[1]);
+      if (isOutputNode(targetNode)) {
+        get().circuit.connectOutputPin(
+          targetNode.data.index,
+          sourceNode.data.index,
+          sourceHandleIndex
+        );
+      } else if (isChipNode(targetNode)) {
+        // console.log("here");
+        if (connection.targetHandle === null) {
+          console.log("Target handle ID not defined.");
+          return;
+        }
+        const targetHandleIndex = Number(connection.targetHandle.split("-")[1]);
+        get().circuit.connectChip(
+          sourceNode.data.index,
+          sourceHandleIndex,
+          targetNode.data.index,
+          targetHandleIndex
+        );
+      }
+    }
+
     set({
       edges: addEdge(connection, get().edges),
     });

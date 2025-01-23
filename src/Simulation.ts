@@ -101,6 +101,18 @@ export class Circuit implements Component {
     });
   }
 
+  public connectChip(
+    sourceChipIndex: number,
+    sourcePinIndex: number,
+    targetChipIndex: number,
+    targetPinIndex: number
+  ) {
+    this.components[sourceChipIndex].add_connection(sourcePinIndex, {
+      componentIndex: targetChipIndex,
+      inputIndex: targetPinIndex,
+    });
+  }
+
   public removeComponent(indexToRemove: number) {
     // TODO replace the deleted element with the last element in the array instead of shifting all elements
     // then replace the indices of the last element instead of decrementing all of the indices
