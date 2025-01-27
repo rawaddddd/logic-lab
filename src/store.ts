@@ -38,7 +38,7 @@ const nand_a = new CompIO({
   update: nand,
 }); // c_id: 0
 
-nand_a.add_connection(0, { componentIndex: 0, inputIndex: 1 }); // nand_a -> nand_a
+nand_a.add_connection(0, { componentId: 0, inputIndex: 1 }); // nand_a -> nand_a
 
 const initialCircuit = new Circuit("nand short", 1, 1, [nand_a]);
 initialCircuit.connectInputPin(0, 0, 0); // input 0 -> nand_a
@@ -52,8 +52,69 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   setCircuit: (newCircuit: Circuit) => set({ circuit: newCircuit }),
   updateCircuit: (input: Bit[]) => {
     get().circuit.update(input);
-    const { nodes, edges } = circuitToFlow(get().circuit);
-    set({ nodes, edges });
+    // const { nodes, edges } = circuitToFlow(get().circuit);
+    // set({ nodes, edges });
+    set({
+      nodes: get().nodes.map((node) => {
+        if (node.type === "chip") {
+          const component = get().circuit.getComponent(node.data.id);
+          if (component === undefined) {
+            console.warn(
+              `Component exists in UI but not in simulation. ID: ${node.data.id}`
+            );
+            return node;
+          }
+          if (
+            node.data.inputs !== component.inputs ||
+            node.data.outputs !== component.outputs
+          ) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                inputs: component.inputs,
+                outputs: component.outputs,
+              },
+            };
+          }
+        } else if (node.type === "input") {
+          const inputPin = get().circuit.getInputPin(node.data.id);
+          if (inputPin === undefined) {
+            console.warn(
+              `Input pin exists in UI but not in simulation. ID: ${node.data.id}`
+            );
+            return node;
+          }
+          if (node.data.state !== inputPin.value) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                state: inputPin.value,
+              },
+            };
+          }
+        } else if (node.type === "output") {
+          const outputPin = get().circuit.getOutputPin(node.data.id);
+          if (outputPin === undefined) {
+            console.warn(
+              `Output pin exists in UI but not in simulation. ID: ${node.data.id}`
+            );
+            return node;
+          }
+          if (node.data.state !== outputPin.value) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                state: outputPin.value,
+              },
+            };
+          }
+        }
+        return node;
+      }),
+    });
   },
   nodes: initialNodes,
   edges: initialEdges,
@@ -62,42 +123,42 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       if (change.type === "replace") {
         const node = get().nodes.find((node) => node.id === change.id);
         if (isInputNode(node)) {
-          get().circuit.inputPins[node.data.index].value = (
+          get().circuit.getInputPin(node.data.id)!.value = (
             change.item.data as InputNodeData
           ).state;
         }
       } else if (change.type === "position") {
         const node = get().nodes.find((node) => node.id === change.id)!;
         if (isInputNode(node)) {
-          get().circuit.inputPins[node.data.index].extraProperties.position =
+          get().circuit.getInputPin(node.data.id)!.extraProperties.position =
             change.position;
         } else if (isOutputNode(node)) {
-          get().circuit.outputPins[node.data.index].extraProperties.position =
+          get().circuit.getOutputPin(node.data.id)!.extraProperties.position =
             change.position;
         } else if (isChipNode(node)) {
-          get().circuit.components[node.data.index].extraProperties.position =
+          get().circuit.getComponent(node.data.id)!.extraProperties.position =
             change.position;
         }
       } else if (change.type === "select") {
         const node = get().nodes.find((node) => node.id === change.id)!;
         if (isInputNode(node)) {
-          get().circuit.inputPins[node.data.index].extraProperties.selected =
+          get().circuit.getInputPin(node.data.id)!.extraProperties.selected =
             change.selected;
         } else if (isOutputNode(node)) {
-          get().circuit.outputPins[node.data.index].extraProperties.selected =
+          get().circuit.getOutputPin(node.data.id)!.extraProperties.selected =
             change.selected;
         } else if (isChipNode(node)) {
-          get().circuit.components[node.data.index].extraProperties.selected =
+          get().circuit.getComponent(node.data.id)!.extraProperties.selected =
             change.selected;
         }
       } else if (change.type === "remove") {
         const node = get().nodes.find((node) => node.id === change.id)!;
         if (isInputNode(node)) {
-          get().circuit.removeInputPin(node.data.index);
+          get().circuit.removeInputPin(node.data.id);
         } else if (isOutputNode(node)) {
-          get().circuit.removeOutputPin(node.data.index);
+          get().circuit.removeOutputPin(node.data.id);
         } else if (isChipNode(node)) {
-          get().circuit.removeComponent(node.data.index);
+          get().circuit.removeComponent(node.data.id);
         }
       }
     }
@@ -123,7 +184,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     });
   },
   onConnect: (connection) => {
-    console.log(connection);
     const sourceNode = get().nodes.find(
       (node) => node.id === connection.source
     )!;
@@ -133,46 +193,45 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
     if (isInputNode(sourceNode)) {
       if (!isChipNode(targetNode)) {
-        console.log(
+        console.warn(
           "Connecting input pin directly to output pin is not supported yet."
         );
         return;
       }
       if (connection.targetHandle === null) {
-        console.log("Target handle ID not defined.");
+        console.warn("Target handle ID not defined.");
         return;
       }
       // TODO replace this with a more robust way to convert handle ids to indices
       // maybe by storing a map of id->index (or handle info in general) in the node
       const targetHandleIndex = Number(connection.targetHandle.split("-")[1]);
       get().circuit.connectInputPin(
-        sourceNode.data.index,
-        targetNode.data.index,
+        sourceNode.data.id,
+        targetNode.data.id,
         targetHandleIndex
       );
     } else if (isChipNode(sourceNode)) {
       if (connection.sourceHandle === null) {
-        console.log("Source handle ID not defined.");
+        console.warn("Source handle ID not defined.");
         return;
       }
       const sourceHandleIndex = Number(connection.sourceHandle.split("-")[1]);
       if (isOutputNode(targetNode)) {
         get().circuit.connectOutputPin(
-          targetNode.data.index,
-          sourceNode.data.index,
+          targetNode.data.id,
+          sourceNode.data.id,
           sourceHandleIndex
         );
       } else if (isChipNode(targetNode)) {
-        // console.log("here");
         if (connection.targetHandle === null) {
-          console.log("Target handle ID not defined.");
+          console.warn("Target handle ID not defined.");
           return;
         }
         const targetHandleIndex = Number(connection.targetHandle.split("-")[1]);
         get().circuit.connectChip(
-          sourceNode.data.index,
+          sourceNode.data.id,
           sourceHandleIndex,
-          targetNode.data.index,
+          targetNode.data.id,
           targetHandleIndex
         );
       }

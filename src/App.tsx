@@ -18,6 +18,7 @@ import { Draggable } from "./Draggable";
 import { builtinCircuits, CompIO } from "./Simulation";
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
 import { DragEndEvent } from "./typedDnd";
+import { CustomNodes } from "./Nodes";
 
 const { DndContext } = sidebarDnd;
 
@@ -89,9 +90,25 @@ function App() {
     const y = draggableRect.current.translated.top - droppableRect.top;
 
     const compIO = new CompIO(active.data.current.component);
-    compIO.extraProperties.position = screenToFlowPosition({ x, y });
+    const componentPosition = screenToFlowPosition({ x, y });
+    compIO.extraProperties.position = componentPosition;
     // console.log(compIO);
-    circuit.addComponent(compIO);
+    const id = circuit.addComponent(compIO);
+
+    const newNode: CustomNodes = {
+      id: `chip-${circuit.components.length - 1}`,
+      type: "chip",
+      position: componentPosition,
+      selected: undefined,
+      data: {
+        name: compIO.component.name,
+        inputs: compIO.inputs,
+        outputs: compIO.outputs,
+        id,
+      },
+    };
+
+    setNodes([...nodes, newNode]);
   };
 
   return (

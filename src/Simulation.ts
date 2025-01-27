@@ -3,7 +3,7 @@ import clone from "clone";
 export type Bit = boolean | undefined;
 
 export interface Index {
-  componentIndex: number; // Index of the component in the components array
+  componentId: number; // Index of the component in the components array
   inputIndex: number; // Index of the specific input in that component
 }
 
@@ -48,14 +48,28 @@ export class CompIO {
   }
 }
 
+type ID = number;
+
+type WithID<T> = T extends new (...args: any[]) => infer R
+  ? new (...args: ConstructorParameters<T>) => R & { id: ID }
+  : T & { id: ID };
+
 export class Circuit implements Component {
   name: string;
   numInputs: number;
   numOutputs: number;
-  inputPins: IOPin[];
-  outputPins: IOPin[];
+  inputPins: WithID<IOPin>[];
+  outputPins: WithID<IOPin>[];
 
-  components: CompIO[];
+  components: WithID<CompIO>[];
+
+  inputPinIdMap: Map<ID, number>;
+  outputPinIdMap: Map<ID, number>;
+  componentIdMap: Map<ID, number>;
+
+  inputId: ID = 0;
+  outputId: ID = 0;
+  componentId: ID = 0;
 
   constructor(
     name: string,
@@ -66,139 +80,229 @@ export class Circuit implements Component {
     this.name = name;
     this.numInputs = numInputs;
     this.numOutputs = numOutputs;
-    this.inputPins = Array.from({ length: numInputs }, () => ({
-      connections: [] as Index[],
-      value: undefined as Bit,
-      extraProperties: {},
-    }));
-    this.outputPins = Array.from({ length: numOutputs }, () => ({
-      connections: [] as Index[],
-      value: undefined as Bit,
-      extraProperties: {},
-    }));
-    this.components = components;
-  }
 
-  public connectInputPin(
-    inputPin: number,
-    componentIndex: number,
-    inputIndex: number
-  ) {
-    this.inputPins[inputPin].connections.push({
-      componentIndex,
-      inputIndex,
+    this.inputPinIdMap = new Map();
+    this.outputPinIdMap = new Map();
+    this.componentIdMap = new Map();
+
+    this.inputPins = [];
+    this.outputPins = [];
+    this.components = [];
+
+    for (let i = 0; i < numInputs; i++) {
+      this.addInputPin({
+        connections: [] as Index[],
+        value: undefined as Bit,
+        extraProperties: {},
+      });
+    }
+    for (let i = 0; i < numOutputs; i++) {
+      this.addOutputPin({
+        connections: [] as Index[],
+        value: undefined as Bit,
+        extraProperties: {},
+      });
+    }
+    components.forEach((component) => {
+      this.addComponent(component);
     });
   }
 
-  public connectOutputPin(
-    outputPin: number,
-    componentIndex: number,
-    outputIndex: number
-  ) {
-    this.outputPins[outputPin].connections.push({
-      componentIndex,
-      inputIndex: outputIndex,
-    });
+  public getInputPin(id: ID) {
+    const index = this.inputPinIdMap.get(id);
+    return index === undefined ? undefined : this.inputPins[index];
+  }
+
+  public getOutputPin(id: ID) {
+    const index = this.outputPinIdMap.get(id);
+    return index === undefined ? undefined : this.outputPins[index];
+  }
+
+  public getComponent(id: ID) {
+    const index = this.componentIdMap.get(id);
+    return index === undefined ? undefined : this.components[index];
+  }
+
+  public connectInputPin(inputId: ID, componentId: ID, inputIndex: number) {
+    const inputIndexInArray = this.inputPinIdMap.get(inputId);
+    const componentIndexInArray = this.componentIdMap.get(componentId);
+
+    if (
+      inputIndexInArray !== undefined &&
+      componentIndexInArray !== undefined
+    ) {
+      this.inputPins[inputIndexInArray].connections.push({
+        componentId,
+        inputIndex,
+      });
+    }
+  }
+
+  public connectOutputPin(outputId: ID, componentId: ID, outputIndex: number) {
+    const outputIndexInArray = this.outputPinIdMap.get(outputId);
+    const componentIndexInArray = this.componentIdMap.get(componentId);
+
+    if (
+      outputIndexInArray !== undefined &&
+      componentIndexInArray !== undefined
+    ) {
+      this.outputPins[outputIndexInArray].connections.push({
+        componentId,
+        inputIndex: outputIndex,
+      });
+    }
   }
 
   public connectChip(
-    sourceChipIndex: number,
+    sourceChipId: ID,
     sourcePinIndex: number,
-    targetChipIndex: number,
+    targetChipId: ID,
     targetPinIndex: number
   ) {
-    this.components[sourceChipIndex].add_connection(sourcePinIndex, {
-      componentIndex: targetChipIndex,
-      inputIndex: targetPinIndex,
-    });
+    const sourceIndex = this.componentIdMap.get(sourceChipId);
+    const targetIndex = this.componentIdMap.get(targetChipId);
+
+    if (sourceIndex !== undefined && targetIndex !== undefined) {
+      const sourceComponent = this.components[sourceIndex];
+      sourceComponent.add_connection(sourcePinIndex, {
+        componentId: targetChipId,
+        inputIndex: targetPinIndex,
+      });
+    }
   }
 
-  public removeComponent(indexToRemove: number) {
-    // TODO replace the deleted element with the last element in the array instead of shifting all elements
-    // then replace the indices of the last element instead of decrementing all of the indices
-    // remove component
-    this.components.splice(indexToRemove, 1);
+  addInputPin(inputPin: IOPin): ID {
+    const id = this.inputId++;
+    this.inputPins.push({ id, ...inputPin });
+    this.inputPinIdMap.set(id, this.inputPins.length - 1);
+    return id;
+  }
+
+  addOutputPin(outputPin: IOPin): ID {
+    const id = this.outputId++;
+    this.outputPins.push({ id, ...outputPin });
+    this.outputPinIdMap.set(id, this.outputPins.length - 1);
+    return id;
+  }
+
+  public addComponent(component: CompIO): ID {
+    const id = this.componentId++;
+    const componentWithId = component as WithID<CompIO>;
+    componentWithId.id = id;
+    this.components.push(componentWithId);
+    this.componentIdMap.set(id, this.components.length - 1);
+    return id;
+  }
+
+  public removeInputPin(idToRemove: ID) {
+    if (!this.inputPinIdMap.has(idToRemove)) {
+      console.warn(
+        `Tried to delete input pin that is not in the circuit. ID: ${idToRemove}`
+      );
+      return undefined;
+    }
+
+    const indexToRemove = this.inputPinIdMap.get(idToRemove)!;
+
+    if (indexToRemove !== this.inputPins.length - 1) {
+      const temp = this.inputPins[indexToRemove];
+      this.inputPins[indexToRemove] = this.inputPins[this.inputPins.length - 1];
+      this.inputPins[this.inputPins.length - 1] = temp;
+      this.inputPinIdMap.set(this.inputPins[indexToRemove].id, indexToRemove);
+    }
+    this.inputPinIdMap.delete(idToRemove);
+
+    return this.inputPins.pop();
+  }
+
+  public removeOutputPin(idToRemove: ID) {
+    if (!this.outputPinIdMap.has(idToRemove)) {
+      console.warn(
+        `Tried to delete output pin that is not in the circuit. ID: ${idToRemove}`
+      );
+      return undefined;
+    }
+
+    const indexToRemove = this.outputPinIdMap.get(idToRemove)!;
+
+    if (indexToRemove !== this.outputPins.length - 1) {
+      const temp = this.outputPins[indexToRemove];
+      this.outputPins[indexToRemove] =
+        this.outputPins[this.outputPins.length - 1];
+      this.outputPins[this.outputPins.length - 1] = temp;
+      this.outputPinIdMap.set(this.outputPins[indexToRemove].id, indexToRemove);
+    }
+    this.outputPinIdMap.delete(idToRemove);
+
+    return this.outputPins.pop();
+  }
+
+  public removeComponent(idToRemove: ID) {
+    if (!this.componentIdMap.has(idToRemove)) {
+      console.warn(
+        `Tried to delete component that is not in the circuit. ID: ${idToRemove}`
+      );
+      return undefined;
+    }
+
+    // replace the deleted element with the last element in the array instead of shifting all elements
+    const indexToRemove = this.componentIdMap.get(idToRemove)!;
+
+    if (indexToRemove !== this.components.length - 1) {
+      const temp = this.components[indexToRemove];
+      this.components[indexToRemove] =
+        this.components[this.components.length - 1];
+      this.components[this.components.length - 1] = temp;
+      this.componentIdMap.set(this.components[indexToRemove].id, indexToRemove);
+    }
+    this.componentIdMap.delete(idToRemove);
+
+    const deletedComponent = this.components.pop();
 
     // remove connections to component
+    // TODO maybe move this into a clean up method instead of calling it every time a component is deleted
     for (let inputPin of this.inputPins) {
       inputPin.connections = inputPin.connections.filter(
-        (connection) => connection.componentIndex !== indexToRemove
+        (connection) => connection.componentId !== idToRemove
       );
     }
     for (let outputPin of this.outputPins) {
       outputPin.connections = outputPin.connections.filter(
-        (connection) => connection.componentIndex !== indexToRemove
+        (connection) => connection.componentId !== idToRemove
       );
     }
     for (let component of this.components) {
       for (let connections of component.connections) {
         connections = connections.filter(
-          (connection) => connection.componentIndex !== indexToRemove
+          (connection) => connection.componentId !== idToRemove
         );
       }
     }
 
-    // decrement indices of connections to components after the component to delete
-    for (let inputPin of this.inputPins) {
-      inputPin.connections = inputPin.connections.map((connection) => ({
-        ...connection,
-        componentId:
-          connection.componentIndex > indexToRemove
-            ? connection.componentIndex - 1
-            : connection.componentIndex,
-      }));
-    }
-    for (let outputPin of this.outputPins) {
-      outputPin.connections = outputPin.connections.map((connection) => ({
-        ...connection,
-        componentId:
-          connection.componentIndex > indexToRemove
-            ? connection.componentIndex - 1
-            : connection.componentIndex,
-      }));
-    }
-    for (let component of this.components) {
-      for (let connections of component.connections) {
-        connections = connections.map((connection) => ({
-          ...connection,
-          componentId:
-            connection.componentIndex > indexToRemove
-              ? connection.componentIndex - 1
-              : connection.componentIndex,
-        }));
-      }
-    }
-  }
-
-  public removeInputPin(indexToRemove: number) {
-    this.inputPins.splice(indexToRemove, 1);
-  }
-
-  public removeOutputPin(indexToRemove: number) {
-    this.outputPins.splice(indexToRemove, 1);
+    return deletedComponent;
   }
 
   public getInternalConnections(
-    inputPinIndices: number[],
-    outputPinIndices: number[],
-    componentIndices: number[]
+    inputPinIds: ID[],
+    outputPinIds: ID[],
+    componentIds: ID[]
   ) {
-    const inputConnections = inputPinIndices.map((inputIndex) =>
+    const inputConnections = inputPinIds.map((inputIndex) =>
       this.inputPins[inputIndex].connections.filter((connection) =>
-        componentIndices.includes(connection.componentIndex)
+        componentIds.includes(connection.componentId)
       )
     );
 
-    const outputConnections = outputPinIndices.map((outputIndex) =>
+    const outputConnections = outputPinIds.map((outputIndex) =>
       this.outputPins[outputIndex].connections.filter((connection) =>
-        componentIndices.includes(connection.componentIndex)
+        componentIds.includes(connection.componentId)
       )
     );
 
-    const componentConnections = componentIndices.map((componentIndex) =>
+    const componentConnections = componentIds.map((componentIndex) =>
       this.components[componentIndex].connections.map((connection) =>
         connection.filter((connection) =>
-          componentIndices.includes(connection.componentIndex)
+          componentIds.includes(connection.componentId)
         )
       )
     );
@@ -240,7 +344,7 @@ export class Circuit implements Component {
         (connection) =>
           ({
             ...connection,
-            componentIndex: newComponentIndices.get(connection.componentIndex)!,
+            componentId: newComponentIndices.get(connection.componentId)!,
           } as Index)
       )
     );
@@ -249,7 +353,7 @@ export class Circuit implements Component {
         (connection) =>
           ({
             ...connection,
-            componentIndex: newComponentIndices.get(connection.componentIndex)!,
+            componentId: newComponentIndices.get(connection.componentId)!,
           } as Index)
       )
     );
@@ -259,9 +363,7 @@ export class Circuit implements Component {
           (connection) =>
             ({
               ...connection,
-              componentIndex: newComponentIndices.get(
-                connection.componentIndex
-              )!,
+              componentId: newComponentIndices.get(connection.componentId)!,
             } as Index)
         )
       )
@@ -286,12 +388,8 @@ export class Circuit implements Component {
         this.components[componentIndex].component
       );
       newComponent.connections = newComponentConnections[componentIndex];
-      this.components.push(newComponent);
+      this.addComponent(newComponent);
     });
-  }
-
-  public addComponent(component: CompIO) {
-    this.components.push(component);
   }
 
   public update(input: Bit[]): Bit[] {
@@ -302,12 +400,15 @@ export class Circuit implements Component {
     return this.output();
   }
 
-  propagate(componentId: number) {
-    const connections = this.components[componentId].connections;
+  propagate(componentIndex: number) {
+    const connections = this.components[componentIndex].connections;
     connections.forEach((to, out_id) => {
       to.forEach((i) => {
-        this.components[i.componentIndex].inputs[i.inputIndex] =
-          this.components[componentId].outputs[out_id];
+        if (this.componentIdMap.has(i.componentId)) {
+          this.components[this.componentIdMap.get(i.componentId)!].inputs[
+            i.inputIndex
+          ] = this.components[componentIndex].outputs[out_id];
+        }
       });
     });
   }
@@ -320,7 +421,11 @@ export class Circuit implements Component {
 
     this.inputPins.forEach((inputPin) => {
       inputPin.connections.forEach((i) => {
-        this.components[i.componentIndex].inputs[i.inputIndex] = inputPin.value;
+        if (this.componentIdMap.has(i.componentId)) {
+          this.components[this.componentIdMap.get(i.componentId)!].inputs[
+            i.inputIndex
+          ] = inputPin.value;
+        }
       });
     });
   }
@@ -340,8 +445,12 @@ export class Circuit implements Component {
   propagate_output() {
     this.outputPins.forEach((outputPin) => {
       outputPin.connections.forEach((i) => {
-        outputPin.value =
-          this.components[i.componentIndex].outputs[i.inputIndex];
+        if (this.componentIdMap.has(i.componentId)) {
+          outputPin.value =
+            this.components[this.componentIdMap.get(i.componentId)!].outputs[
+              i.inputIndex
+            ];
+        }
       });
     });
   }

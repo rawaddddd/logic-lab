@@ -3,7 +3,7 @@ import { Bit } from "./Simulation";
 
 export type InputNodeData = {
   state: Bit;
-  index: number;
+  id: number;
 };
 
 export type InputNode = Node<InputNodeData, "input">;
@@ -12,14 +12,14 @@ export type ChipNodeData = {
   name: string;
   inputs: Bit[];
   outputs: Bit[];
-  index: number; // compIO index in parent circuit's components array
+  id: number; // compIO index in parent circuit's components array
 };
 
 export type ChipNode = Node<ChipNodeData, "chip">;
 
 export type OutputNodeData = {
   state: Bit;
-  index: number;
+  id: number;
 };
 
 export type OutputNode = Node<OutputNodeData, "output">;

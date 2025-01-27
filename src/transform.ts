@@ -9,12 +9,12 @@ export function circuitToFlow(circuit: Circuit): {
   const nodes: CustomNodes[] = [];
 
   // Add chip nodes
-  circuit.components.forEach((component, index) => {
+  circuit.components.forEach((component) => {
     nodes.push({
-      id: `chip-${index}`,
+      id: `chip-${component.id}`,
       type: "chip",
       position: component.extraProperties.position ?? {
-        x: 200 * index,
+        x: 200 * component.id,
         y: 200,
       },
       selected: component.extraProperties.selected,
@@ -22,33 +22,36 @@ export function circuitToFlow(circuit: Circuit): {
         name: component.component.name,
         inputs: component.inputs,
         outputs: component.outputs,
-        index,
+        id: component.id,
       },
     });
   });
 
   // Add input nodes
-  circuit.inputPins.forEach((inputPin, index) => {
+  circuit.inputPins.forEach((inputPin) => {
     nodes.push({
-      id: `input-${index}`,
+      id: `input-${inputPin.id}`,
       type: "input",
-      position: inputPin.extraProperties.position ?? { x: 100 * index, y: 0 },
+      position: inputPin.extraProperties.position ?? {
+        x: 100 * inputPin.id,
+        y: 0,
+      },
       selected: inputPin.extraProperties.selected,
-      data: { state: inputPin.value, index },
+      data: { state: inputPin.value, id: inputPin.id },
     });
   });
 
   // Add output nodes
-  circuit.outputPins.forEach((outputPin, index) => {
+  circuit.outputPins.forEach((outputPin) => {
     nodes.push({
-      id: `output-${index}`,
+      id: `output-${outputPin.id}`,
       type: "output",
       position: outputPin.extraProperties.position ?? {
-        x: 100 * index,
+        x: 100 * outputPin.id,
         y: 400,
       },
       selected: outputPin.extraProperties.selected,
-      data: { state: outputPin.value, index },
+      data: { state: outputPin.value, id: outputPin.id },
     });
   });
 
@@ -56,14 +59,14 @@ export function circuitToFlow(circuit: Circuit): {
   const edges: WireEdge[] = [];
 
   // Internal chip connections
-  circuit.components.forEach((component, componentIndex) => {
+  circuit.components.forEach((component) => {
     component.connections.forEach((connections, outputIndex) => {
       connections.forEach((targetIndex) => {
         edges.push({
-          id: `chip-${componentIndex}-${outputIndex}->chip-${targetIndex.componentIndex}-${targetIndex.inputIndex}`,
-          source: `chip-${componentIndex}`,
+          id: `chip-${component.id}-${outputIndex}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+          source: `chip-${component.id}`,
           sourceHandle: `output-${outputIndex}`,
-          target: `chip-${targetIndex.componentIndex}`,
+          target: `chip-${targetIndex.componentId}`,
           targetHandle: `input-${targetIndex.inputIndex}`,
           type: "custom",
           data: { sourceHandleIndex: outputIndex },
@@ -73,13 +76,13 @@ export function circuitToFlow(circuit: Circuit): {
   });
 
   // Input chip connections
-  circuit.inputPins.forEach((inputPin, inputIndex) => {
+  circuit.inputPins.forEach((inputPin) => {
     inputPin.connections.forEach((targetIndex) => {
       edges.push({
-        id: `input-${inputIndex}->chip-${targetIndex.componentIndex}-${targetIndex.inputIndex}`,
-        source: `input-${inputIndex}`,
+        id: `input-${inputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+        source: `input-${inputPin.id}`,
         sourceHandle: undefined,
-        target: `chip-${targetIndex.componentIndex}`,
+        target: `chip-${targetIndex.componentId}`,
         targetHandle: `input-${targetIndex.inputIndex}`,
         type: "custom",
         data: { sourceHandleIndex: 0 },
@@ -88,13 +91,13 @@ export function circuitToFlow(circuit: Circuit): {
   });
 
   // Output chip connections
-  circuit.outputPins.forEach((outputPin, outputIndex) => {
+  circuit.outputPins.forEach((outputPin) => {
     outputPin.connections.forEach((targetIndex) => {
       edges.push({
-        id: `output-${outputIndex}->chip-${targetIndex.componentIndex}-${targetIndex.inputIndex}`,
-        source: `chip-${targetIndex.componentIndex}`,
+        id: `output-${outputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+        source: `chip-${targetIndex.componentId}`,
         sourceHandle: `output-${targetIndex.inputIndex}`,
-        target: `output-${outputIndex}`,
+        target: `output-${outputPin.id}`,
         targetHandle: undefined,
         type: "custom",
         data: { sourceHandleIndex: 0 },
