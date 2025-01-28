@@ -171,6 +171,70 @@ export class Circuit implements Component {
     }
   }
 
+  public disconnectInputPin(inputId: ID, componentId: ID, inputIndex: number) {
+    const inputIndexInArray = this.inputPinIdMap.get(inputId);
+    const componentIndexInArray = this.componentIdMap.get(componentId);
+
+    if (
+      inputIndexInArray !== undefined &&
+      componentIndexInArray !== undefined
+    ) {
+      const index = this.inputPins[inputIndexInArray].connections.findIndex(
+        (connection) =>
+          connection.componentId === componentId &&
+          connection.inputIndex === inputIndex
+      );
+      if (index > -1) {
+        this.inputPins[inputIndexInArray].connections.splice(index, 1);
+      }
+    }
+  }
+
+  public disconnectOutputPin(
+    outputId: ID,
+    componentId: ID,
+    outputIndex: number
+  ) {
+    const outputIndexInArray = this.outputPinIdMap.get(outputId);
+    const componentIndexInArray = this.componentIdMap.get(componentId);
+
+    if (
+      outputIndexInArray !== undefined &&
+      componentIndexInArray !== undefined
+    ) {
+      const index = this.outputPins[outputIndexInArray].connections.findIndex(
+        (connection) =>
+          connection.componentId === componentId &&
+          connection.inputIndex === outputIndex
+      );
+      if (index > -1) {
+        this.outputPins[outputIndexInArray].connections.splice(index, 1);
+      }
+    }
+  }
+
+  public disconnectChip(
+    sourceChipId: ID,
+    sourcePinIndex: number,
+    targetChipId: ID,
+    targetPinIndex: number
+  ) {
+    const sourceIndex = this.componentIdMap.get(sourceChipId);
+    const targetIndex = this.componentIdMap.get(targetChipId);
+
+    if (sourceIndex !== undefined && targetIndex !== undefined) {
+      const sourceComponent = this.components[sourceIndex];
+      const index = sourceComponent.connections[sourcePinIndex].findIndex(
+        (connection) =>
+          connection.componentId === targetChipId &&
+          connection.inputIndex === targetPinIndex
+      );
+      if (index > -1) {
+        sourceComponent.connections[sourcePinIndex].splice(index, 1);
+      }
+    }
+  }
+
   addInputPin(inputPin: IOPin): ID {
     const id = this.inputId++;
     this.inputPins.push({ id, ...inputPin });
