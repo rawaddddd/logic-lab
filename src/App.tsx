@@ -15,7 +15,7 @@ import { useState, MouseEvent } from "react";
 import useInterval from "./useInterval";
 import { Droppable } from "./Droppable";
 import { Draggable } from "./Draggable";
-import { builtinCircuits, CompIO } from "./Simulation";
+import { builtinCircuits, CompIO, notGateChip } from "./Simulation";
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
 import { DragEndEvent } from "./typedDnd";
 import { CustomNodes } from "./Nodes";
@@ -150,6 +150,8 @@ function App() {
     undefined
   );
 
+  const [numInputHandles, setNumInputHandles] = useState(2);
+
   return (
     <DndContext onDragEnd={onDragEnd}>
       <Droppable id={"rfCanvas"}>
@@ -181,6 +183,23 @@ function App() {
               </Panel>
             )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white">
+              <label
+                htmlFor="num-handles"
+                className="mb-1 text-nowrap block text-sm font-medium text-gray-500"
+              >
+                Input handles:
+              </label>
+              <input
+                id="num-handles"
+                type="number"
+                min={2}
+                value={numInputHandles}
+                className="w-20 border rounded-lg"
+                onChange={(e) => {
+                  setNumInputHandles(Number(e.target.value));
+                }}
+              />
+              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
               <Draggable id="INPUT" data={{ type: "input" }}>
                 <div>INPUT</div>
               </Draggable>
@@ -188,13 +207,19 @@ function App() {
                 <div>OUTPUT</div>
               </Draggable>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
-              {builtinCircuits.map((chip) => (
+              <Draggable
+                id="NOT"
+                data={{ type: "chip", component: notGateChip }}
+              >
+                <div>NOT</div>
+              </Draggable>
+              {builtinCircuits.slice(1).map((chip) => (
                 <Draggable
                   id={chip.name}
                   key={chip.name}
                   data={{
                     type: "chip",
-                    component: chip,
+                    component: { ...chip, numInputs: numInputHandles },
                   }}
                 >
                   <div>{chip.name}</div>

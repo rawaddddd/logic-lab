@@ -7,17 +7,17 @@ function ChipNode({ data: { name, inputs, outputs } }: NodeProps<ChipNode>) {
   return (
     <div
       className={
-        "flex flex-row justify-between rounded-sm border-2 border-gray-500"
+        "flex flex-row justify-between rounded-sm border-2 border-gray-500 bg-white"
       }
     >
-      <div className="flex flex-col justify-around">
+      <div className="py-1 flex flex-col justify-around">
         {inputs.map((input, i) => (
           <div key={i}>
             <SingleConnectionHandle
               id={`input-${i}`}
               type="target"
               position={Position.Left}
-              className={`!relative w-2 h-2 border-[1px] border-white rounded-lg ${
+              className={`!relative w-2 h-2 mb-1 border border-white rounded-lg ${
                 input === undefined
                   ? "!bg-gray-800"
                   : input
@@ -28,15 +28,17 @@ function ChipNode({ data: { name, inputs, outputs } }: NodeProps<ChipNode>) {
           </div>
         ))}
       </div>
-      <div className={"px-4 py-2 font-bold text-gray-500"}>{name}</div>
-      <div className="flex flex-col justify-around">
+      <div className={"px-4 py-1 font-bold self-center text-gray-500"}>
+        {name}
+      </div>
+      <div className="py-1 flex flex-col justify-around">
         {outputs.map((output, i) => (
           <div key={i}>
             <Handle
               id={`output-${i}`}
               type="source"
               position={Position.Right}
-              className={`!relative w-2 h-2 border-[1px] border-white rounded-lg ${
+              className={`!relative w-2 h-2 mb-1 border border-white rounded-lg ${
                 output === undefined
                   ? "!bg-gray-800"
                   : output
