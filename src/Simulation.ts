@@ -240,14 +240,14 @@ export class Circuit implements Component {
 
   addInputPin(inputPin: IOPin): ID {
     const id = this.inputId++;
-    this.inputPins.push({ id, ...inputPin });
+    this.inputPins.push({ ...inputPin, id });
     this.inputPinIdMap.set(id, this.inputPins.length - 1);
     return id;
   }
 
   addOutputPin(outputPin: IOPin): ID {
     const id = this.outputId++;
-    this.outputPins.push({ id, ...outputPin });
+    this.outputPins.push({ ...outputPin, id });
     this.outputPinIdMap.set(id, this.outputPins.length - 1);
     return id;
   }
@@ -354,20 +354,20 @@ export class Circuit implements Component {
     outputPinIds: ID[],
     componentIds: ID[]
   ) {
-    const inputConnections = inputPinIds.map((inputIndex) =>
-      this.inputPins[inputIndex].connections.filter((connection) =>
+    const inputConnections = inputPinIds.map((inputId) =>
+      this.getInputPin(inputId)!.connections.filter((connection) =>
         componentIds.includes(connection.componentId)
       )
     );
 
-    const outputConnections = outputPinIds.map((outputIndex) =>
-      this.outputPins[outputIndex].connections.filter((connection) =>
+    const outputConnections = outputPinIds.map((outputId) =>
+      this.getOutputPin(outputId)!.connections.filter((connection) =>
         componentIds.includes(connection.componentId)
       )
     );
 
-    const componentConnections = componentIds.map((componentIndex) =>
-      this.components[componentIndex].connections.map((connection) =>
+    const componentConnections = componentIds.map((componentId) =>
+      this.getComponent(componentId)!.connections.map((connection) =>
         connection.filter((connection) =>
           componentIds.includes(connection.componentId)
         )
@@ -382,28 +382,33 @@ export class Circuit implements Component {
   }
 
   public duplicateComponents(
-    inputPinIndices: number[],
-    outputPinIndices: number[],
-    componentIndices: number[]
+    inputPinIds: ID[],
+    outputPinIds: ID[],
+    componentIds: ID[]
   ) {
     const { inputConnections, outputConnections, componentConnections } =
-      this.getInternalConnections(
-        inputPinIndices,
-        outputPinIndices,
-        componentIndices
-      );
+      this.getInternalConnections(inputPinIds, outputPinIds, componentIds);
 
-    const newInputPinIndices = new Map<number, number>();
-    inputPinIndices.forEach((originalIndex, index) =>
-      newInputPinIndices.set(originalIndex, this.inputPins.length + index)
+    const inputPinIdsMap = new Map<ID, ID>();
+    inputPinIds.forEach((originalId) =>
+      inputPinIdsMap.set(
+        originalId,
+        this.addInputPin(clone(this.getInputPin(originalId)!))
+      )
     );
-    const newOutputPinIndices = new Map<number, number>();
-    outputPinIndices.forEach((originalIndex, index) =>
-      newOutputPinIndices.set(originalIndex, this.outputPins.length + index)
+    const outputPinIdsMap = new Map<ID, ID>();
+    outputPinIds.forEach((originalId) =>
+      outputPinIdsMap.set(
+        originalId,
+        this.addOutputPin(clone(this.getOutputPin(originalId)!))
+      )
     );
-    const newComponentIndices = new Map<number, number>();
-    componentIndices.forEach((originalIndex, index) =>
-      newComponentIndices.set(originalIndex, this.components.length + index)
+    const componentIdsMap = new Map<ID, ID>();
+    componentIds.forEach((originalId) =>
+      componentIdsMap.set(
+        originalId,
+        this.addComponent(new CompIO(this.getComponent(originalId)!.component))
+      )
     );
 
     const newInputConnections = inputConnections.map((inputPin) =>
@@ -411,7 +416,7 @@ export class Circuit implements Component {
         (connection) =>
           ({
             ...connection,
-            componentId: newComponentIndices.get(connection.componentId)!,
+            componentId: componentIdsMap.get(connection.componentId)!,
           } as Index)
       )
     );
@@ -420,7 +425,7 @@ export class Circuit implements Component {
         (connection) =>
           ({
             ...connection,
-            componentId: newComponentIndices.get(connection.componentId)!,
+            componentId: componentIdsMap.get(connection.componentId)!,
           } as Index)
       )
     );
@@ -430,33 +435,30 @@ export class Circuit implements Component {
           (connection) =>
             ({
               ...connection,
-              componentId: newComponentIndices.get(connection.componentId)!,
+              componentId: componentIdsMap.get(connection.componentId)!,
             } as Index)
         )
       )
     );
 
-    inputPinIndices.forEach((inputPinIndex) => {
-      const inputPin = {
-        ...clone(this.inputPins[inputPinIndex]),
-        connections: newInputConnections[inputPinIndex] ?? [],
-      };
-      this.inputPins.push(inputPin);
+    const newInputPinIds = Array.from(inputPinIdsMap.values());
+    newInputPinIds.forEach((inputPinId, i) => {
+      this.getInputPin(inputPinId)!.connections = newInputConnections[i];
     });
-    outputPinIndices.forEach((outputPinIndex) => {
-      const outputPin = {
-        ...clone(this.outputPins[outputPinIndex]),
-        connections: newOutputConnections[outputPinIndex] ?? [],
-      };
-      this.outputPins.push(outputPin);
+    const newOutputPinIds = Array.from(outputPinIdsMap.values());
+    newOutputPinIds.forEach((outputPinId, i) => {
+      this.getOutputPin(outputPinId)!.connections = newOutputConnections[i];
     });
-    componentIndices.forEach((componentIndex) => {
-      const newComponent = new CompIO(
-        this.components[componentIndex].component
-      );
-      newComponent.connections = newComponentConnections[componentIndex];
-      this.addComponent(newComponent);
+    const newComponentIds = Array.from(componentIdsMap.values());
+    newComponentIds.forEach((componentId, i) => {
+      this.getComponent(componentId)!.connections = newComponentConnections[i];
     });
+
+    return {
+      newInputPinIds,
+      newOutputPinIds,
+      newComponentIds,
+    };
   }
 
   public update(input: Bit[]): Bit[] {

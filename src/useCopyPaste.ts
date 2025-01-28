@@ -12,17 +12,14 @@ export const useCopyPaste = (
   const onCopyCapture = useCallback((event: ClipboardEvent) => {
     event.preventDefault();
     const selectedInputPinIndices = circuit.inputPins
-      .map((inputPin, index) => ({ inputPin, index }))
-      .filter(({ inputPin }) => inputPin.extraProperties.selected)
-      .map(({ index }) => index);
+      .filter((inputPin) => inputPin.extraProperties.selected)
+      .map(({ id }) => id);
     const selectedOutputPinIndices = circuit.outputPins
-      .map((outputPin, index) => ({ outputPin, index }))
-      .filter(({ outputPin }) => outputPin.extraProperties.selected)
-      .map(({ index }) => index);
+      .filter((outputPin) => outputPin.extraProperties.selected)
+      .map(({ id }) => id);
     const selectedComponentIndices = circuit.components
-      .map((component, index) => ({ component, index }))
-      .filter(({ component }) => component.extraProperties.selected)
-      .map(({ index }) => index);
+      .filter((component) => component.extraProperties.selected)
+      .map(({ id }) => id);
 
     event.clipboardData?.setData(
       "logic-lab:inputPins",
@@ -41,13 +38,13 @@ export const useCopyPaste = (
   const onPasteCapture = useCallback((event: ClipboardEvent) => {
     event.preventDefault();
 
-    const inputPinsIndices = JSON.parse(
+    const inputPinsIds = JSON.parse(
       event.clipboardData?.getData("logic-lab:inputPins") ?? "[]"
     ) as number[];
-    const outputPinsIndices = JSON.parse(
+    const outputPinsIds = JSON.parse(
       event.clipboardData?.getData("logic-lab:outputPins") ?? "[]"
     ) as number[];
-    const componentsIndices = JSON.parse(
+    const componentsIds = JSON.parse(
       event.clipboardData?.getData("logic-lab:components") ?? "[]"
     ) as number[];
 
@@ -61,24 +58,11 @@ export const useCopyPaste = (
       component.extraProperties.selected = false;
     }
 
-    const duplicateComponentsStartIndices = {
-      inputPins: circuit.inputPins.length,
-      outputPins: circuit.outputPins.length,
-      components: circuit.components.length,
-    };
+    const { newInputPinIds, newOutputPinIds, newComponentIds } =
+      circuit.duplicateComponents(inputPinsIds, outputPinsIds, componentsIds);
 
-    circuit.duplicateComponents(
-      inputPinsIndices,
-      outputPinsIndices,
-      componentsIndices
-    );
-
-    for (
-      let i = duplicateComponentsStartIndices.inputPins;
-      i < circuit.inputPins.length;
-      i++
-    ) {
-      const inputPin = circuit.inputPins[i].extraProperties;
+    for (const i of newInputPinIds) {
+      const inputPin = circuit.getInputPin(i)!.extraProperties;
       inputPin.selected = true;
       if (inputPin.position !== undefined) {
         inputPin.position = {
@@ -87,12 +71,8 @@ export const useCopyPaste = (
         };
       }
     }
-    for (
-      let i = duplicateComponentsStartIndices.outputPins;
-      i < circuit.outputPins.length;
-      i++
-    ) {
-      const outputPin = circuit.outputPins[i].extraProperties;
+    for (const i of newOutputPinIds) {
+      const outputPin = circuit.getOutputPin(i)!.extraProperties;
       outputPin.selected = true;
       if (outputPin.position !== undefined) {
         outputPin.position = {
@@ -101,12 +81,8 @@ export const useCopyPaste = (
         };
       }
     }
-    for (
-      let i = duplicateComponentsStartIndices.components;
-      i < circuit.components.length;
-      i++
-    ) {
-      const component = circuit.components[i].extraProperties;
+    for (const i of newComponentIds) {
+      const component = circuit.getComponent(i)!.extraProperties;
       component.selected = true;
       if (component.position !== undefined) {
         component.position = {
