@@ -11,7 +11,7 @@ import {
   IconPlayerPauseFilled,
   IconPlayerPlayFilled,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useState, MouseEvent } from "react";
 import useInterval from "./useInterval";
 import { Droppable } from "./Droppable";
 import { Draggable } from "./Draggable";
@@ -53,7 +53,7 @@ function App() {
     setEdges,
   } = useSimulationStore(useShallow(selector));
 
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getNode } = useReactFlow();
 
   const circuit = useSimulationStore((state) => state.circuit);
   const updateCircuit1 = useSimulationStore((state) => state.updateCircuit);
@@ -111,6 +111,10 @@ function App() {
     setNodes([...nodes, newNode]);
   };
 
+  const [currentNodeId, setCurrentNodeId] = useState<string | undefined>(
+    undefined
+  );
+
   return (
     <DndContext onDragEnd={onDragEnd}>
       <Droppable id={"rfCanvas"}>
@@ -124,11 +128,23 @@ function App() {
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
             fitView
+            onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
+              setCurrentNodeId(node.id);
+            }}
+            onPaneClick={() => setCurrentNodeId(undefined)}
             defaultEdgeOptions={{
               type: "custom",
               data: { sourceHandleIndex: 0 },
             }}
           >
+            {currentNodeId !== undefined && (
+              <Panel
+                position="top-left"
+                className="p-4 shadow-md rounded-md border bg-white text-sm"
+              >
+                <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
+              </Panel>
+            )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white">
               {builtinCircuits.map((chip) => (
                 <Draggable
