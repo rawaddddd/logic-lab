@@ -89,26 +89,61 @@ function App() {
     const x = draggableRect.current.translated.left - droppableRect.left;
     const y = draggableRect.current.translated.top - droppableRect.top;
 
-    const compIO = new CompIO(active.data.current.component);
-    const componentPosition = screenToFlowPosition({ x, y });
-    compIO.extraProperties.position = componentPosition;
-    // console.log(compIO);
-    const id = circuit.addComponent(compIO);
+    const position = screenToFlowPosition({ x, y });
 
-    const newNode: CustomNodes = {
-      id: `chip-${circuit.components.length - 1}`,
-      type: "chip",
-      position: componentPosition,
-      selected: undefined,
-      data: {
-        name: compIO.component.name,
-        inputs: compIO.inputs,
-        outputs: compIO.outputs,
-        id,
-      },
-    };
+    if (active.data.current.type === "input") {
+      const id = circuit.addInputPin({
+        connections: [],
+        value: undefined,
+        extraProperties: { position },
+      });
+      const newNode: CustomNodes = {
+        id: `input-${id}`,
+        type: "input",
+        position: position,
+        selected: undefined,
+        data: {
+          state: undefined,
+          id,
+        },
+      };
+      setNodes([...nodes, newNode]);
+    } else if (active.data.current.type === "output") {
+      const id = circuit.addOutputPin({
+        connections: [],
+        value: undefined,
+        extraProperties: { position },
+      });
+      const newNode: CustomNodes = {
+        id: `output-${id}`,
+        type: "output",
+        position: position,
+        selected: undefined,
+        data: {
+          state: undefined,
+          id,
+        },
+      };
+      setNodes([...nodes, newNode]);
+    } else if (active.data.current.type === "chip") {
+      const compIO = new CompIO(active.data.current.component);
+      compIO.extraProperties.position = position;
+      const id = circuit.addComponent(compIO);
 
-    setNodes([...nodes, newNode]);
+      const newNode: CustomNodes = {
+        id: `chip-${id}`,
+        type: "chip",
+        position: position,
+        selected: undefined,
+        data: {
+          name: compIO.component.name,
+          inputs: compIO.inputs,
+          outputs: compIO.outputs,
+          id,
+        },
+      };
+      setNodes([...nodes, newNode]);
+    }
   };
 
   const [currentNodeId, setCurrentNodeId] = useState<string | undefined>(
@@ -146,11 +181,19 @@ function App() {
               </Panel>
             )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white">
+              <Draggable id="INPUT" data={{ type: "input" }}>
+                <div>INPUT</div>
+              </Draggable>
+              <Draggable id="OUTPUT" data={{ type: "output" }}>
+                <div>OUTPUT</div>
+              </Draggable>
+              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
               {builtinCircuits.map((chip) => (
                 <Draggable
                   id={chip.name}
                   key={chip.name}
                   data={{
+                    type: "chip",
                     component: chip,
                   }}
                 >

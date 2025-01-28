@@ -4,11 +4,22 @@ import { Component } from "./Simulation";
 
 const { useDraggable } = sidebarDnd;
 
+interface InputData {
+  type: "input";
+}
+
+interface OutputData {
+  type: "output";
+}
+
+interface ComponentData {
+  type: "chip";
+  component: Component;
+}
+
 type DraggableProps = HTMLAttributes<HTMLDivElement> & {
   id: string | number;
-  data: {
-    component: Component;
-  };
+  data: InputData | OutputData | ComponentData;
 };
 
 export function Draggable({ id, data, ...rest }: DraggableProps) {
