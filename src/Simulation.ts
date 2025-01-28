@@ -185,6 +185,7 @@ export class Circuit implements Component {
           connection.inputIndex === inputIndex
       );
       if (index > -1) {
+        this.components[componentIndexInArray].inputs[inputIndex] = undefined;
         this.inputPins[inputIndexInArray].connections.splice(index, 1);
       }
     }
@@ -208,6 +209,7 @@ export class Circuit implements Component {
           connection.inputIndex === outputIndex
       );
       if (index > -1) {
+        this.outputPins[outputIndexInArray].value = undefined;
         this.outputPins[outputIndexInArray].connections.splice(index, 1);
       }
     }
@@ -230,6 +232,7 @@ export class Circuit implements Component {
           connection.inputIndex === targetPinIndex
       );
       if (index > -1) {
+        this.components[targetIndex].inputs[targetPinIndex] = undefined;
         sourceComponent.connections[sourcePinIndex].splice(index, 1);
       }
     }
