@@ -622,6 +622,14 @@ export function nor(input: Bit[]): Bit[] {
   return [true];
 }
 
+export function tristateBuffer(input: Bit[]): Bit[] {
+  const enabled = input[0] ?? false;
+  if (enabled) {
+    return input.slice(1);
+  }
+  return Array(input.length - 1).fill(undefined);
+}
+
 export const notGateChip = {
   name: "NOT",
   numInputs: 1,
@@ -657,8 +665,16 @@ export const norGateChip = {
   update: nor,
 };
 
+export const tristateBufferChip = {
+  name: "Tristate Buffer",
+  numInputs: 2,
+  numOutputs: 1,
+  update: tristateBuffer,
+};
+
 export const builtinCircuits: Component[] = [
   notGateChip,
+  tristateBufferChip,
   andGateChip,
   nandGateChip,
   orGateChip,

@@ -15,7 +15,12 @@ import { useState, MouseEvent } from "react";
 import useInterval from "./useInterval";
 import { Droppable } from "./Droppable";
 import { Draggable } from "./Draggable";
-import { builtinCircuits, CompIO, notGateChip } from "./Simulation";
+import {
+  builtinCircuits,
+  CompIO,
+  notGateChip,
+  tristateBufferChip,
+} from "./Simulation";
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
 import { DragEndEvent } from "./typedDnd";
 import { CustomNodes } from "./Nodes";
@@ -208,12 +213,25 @@ function App() {
               </Draggable>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
               <Draggable
+                id="Tristate Buffer"
+                data={{
+                  type: "chip",
+                  component: {
+                    ...tristateBufferChip,
+                    numInputs: numInputHandles,
+                    numOutputs: numInputHandles - 1,
+                  },
+                }}
+              >
+                <div>Tristate Buffer</div>
+              </Draggable>
+              <Draggable
                 id="NOT"
                 data={{ type: "chip", component: notGateChip }}
               >
                 <div>NOT</div>
               </Draggable>
-              {builtinCircuits.slice(1).map((chip) => (
+              {builtinCircuits.slice(2).map((chip) => (
                 <Draggable
                   id={chip.name}
                   key={chip.name}
