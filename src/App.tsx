@@ -19,6 +19,8 @@ import {
   builtinCircuits,
   CompIO,
   notGateChip,
+  pullDownResistorChip,
+  pullUpResistorChip,
   tristateBufferChip,
 } from "./Simulation";
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
@@ -212,6 +214,18 @@ function App() {
               </Draggable>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
               <Draggable
+                id="Pull-Up Resistor"
+                data={{ type: "chip", component: pullUpResistorChip }}
+              >
+                <div>Pull-Up Resistor</div>
+              </Draggable>
+              <Draggable
+                id="Pull-Down Resistor"
+                data={{ type: "chip", component: pullDownResistorChip }}
+              >
+                <div>Pull-Down Resistor</div>
+              </Draggable>
+              <Draggable
                 id="Tristate Buffer"
                 data={{
                   type: "chip",
@@ -224,13 +238,14 @@ function App() {
               >
                 <div>Tristate Buffer</div>
               </Draggable>
+              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
               <Draggable
                 id="NOT"
                 data={{ type: "chip", component: notGateChip }}
               >
                 <div>NOT</div>
               </Draggable>
-              {builtinCircuits.slice(2).map((chip) => (
+              {builtinCircuits.slice(4).map((chip) => (
                 <Draggable
                   id={chip.name}
                   key={chip.name}

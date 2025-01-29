@@ -630,6 +630,14 @@ export function tristateBuffer(input: Bit[]): Bit[] {
   return Array(input.length - 1).fill(undefined);
 }
 
+export function pullUpResistor(input: Bit[]): Bit[] {
+  return [input[0] ?? true];
+}
+
+export function pullDownResistor(input: Bit[]): Bit[] {
+  return [input[0] ?? false];
+}
+
 export const notGateChip = {
   name: "NOT",
   numInputs: 1,
@@ -672,9 +680,25 @@ export const tristateBufferChip = {
   update: tristateBuffer,
 };
 
+export const pullUpResistorChip = {
+  name: "Pull-Up Resistor",
+  numInputs: 1,
+  numOutputs: 1,
+  update: pullUpResistor,
+};
+
+export const pullDownResistorChip = {
+  name: "Pull-Down Resistor",
+  numInputs: 1,
+  numOutputs: 1,
+  update: pullDownResistor,
+};
+
 export const builtinCircuits: Component[] = [
-  notGateChip,
+  pullUpResistorChip,
+  pullDownResistorChip,
   tristateBufferChip,
+  notGateChip,
   andGateChip,
   nandGateChip,
   orGateChip,
