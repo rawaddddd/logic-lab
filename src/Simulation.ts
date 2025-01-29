@@ -9,8 +9,8 @@ export interface Index {
 
 export interface Component {
   name: string;
-  numInputs: number;
-  numOutputs: number;
+  numInputs: () => number;
+  numOutputs: () => number;
   update: (input: Bit[]) => Bit[];
 }
 
@@ -37,9 +37,9 @@ export class CompIO {
 
   constructor(component: Component) {
     this.component = component;
-    this.inputs = new Array(component.numInputs).fill(undefined);
-    this.outputs = new Array(component.numOutputs).fill(undefined);
-    this.connections = Array.from({ length: component.numOutputs }, () => []);
+    this.inputs = new Array(component.numInputs()).fill(undefined);
+    this.outputs = new Array(component.numOutputs()).fill(undefined);
+    this.connections = Array.from({ length: component.numOutputs() }, () => []);
     this.extraProperties = {};
   }
 
@@ -56,8 +56,6 @@ type WithID<T> = T extends new (...args: any[]) => infer R
 
 export class Circuit implements Component {
   name: string;
-  numInputs: number;
-  numOutputs: number;
   inputPins: WithID<IOPin>[];
   outputPins: WithID<IOPin>[];
 
@@ -78,8 +76,6 @@ export class Circuit implements Component {
     components: CompIO[]
   ) {
     this.name = name;
-    this.numInputs = numInputs;
-    this.numOutputs = numOutputs;
 
     this.inputPinIdMap = new Map();
     this.outputPinIdMap = new Map();
@@ -106,6 +102,14 @@ export class Circuit implements Component {
     components.forEach((component) => {
       this.addComponent(component);
     });
+  }
+
+  public numInputs() {
+    return this.inputPins.length;
+  }
+
+  public numOutputs() {
+    return this.outputPins.length;
   }
 
   public getInputPin(id: ID) {
@@ -640,57 +644,57 @@ export function pullDownResistor(input: Bit[]): Bit[] {
 
 export const notGateChip = {
   name: "NOT",
-  numInputs: 1,
-  numOutputs: 1,
+  numInputs: () => 1,
+  numOutputs: () => 1,
   update: not,
 };
 
 export const andGateChip = {
   name: "AND",
-  numInputs: 2,
-  numOutputs: 1,
+  numInputs: () => 2,
+  numOutputs: () => 1,
   update: and,
 };
 
 export const nandGateChip = {
   name: "NAND",
-  numInputs: 2,
-  numOutputs: 1,
+  numInputs: () => 2,
+  numOutputs: () => 1,
   update: nand,
 };
 
 export const orGateChip = {
   name: "OR",
-  numInputs: 2,
-  numOutputs: 1,
+  numInputs: () => 2,
+  numOutputs: () => 1,
   update: or,
 };
 
 export const norGateChip = {
   name: "NOR",
-  numInputs: 2,
-  numOutputs: 1,
+  numInputs: () => 2,
+  numOutputs: () => 1,
   update: nor,
 };
 
 export const tristateBufferChip = {
   name: "Tristate Buffer",
-  numInputs: 2,
-  numOutputs: 1,
+  numInputs: () => 2,
+  numOutputs: () => 1,
   update: tristateBuffer,
 };
 
 export const pullUpResistorChip = {
   name: "Pull-Up Resistor",
-  numInputs: 1,
-  numOutputs: 1,
+  numInputs: () => 1,
+  numOutputs: () => 1,
   update: pullUpResistor,
 };
 
 export const pullDownResistorChip = {
   name: "Pull-Down Resistor",
-  numInputs: 1,
-  numOutputs: 1,
+  numInputs: () => 1,
+  numOutputs: () => 1,
   update: pullDownResistor,
 };
 

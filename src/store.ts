@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Bit, Circuit, CompIO, nand } from "./Simulation";
+import { Bit, Circuit, CompIO, Component, nandGateChip } from "./Simulation";
 import {
   addEdge,
   applyEdgeChanges,
@@ -22,6 +22,8 @@ export interface SimulationStore {
   circuit: Circuit;
   setCircuit: (newCircuit: Circuit) => void;
   updateCircuit: (input: Bit[]) => void;
+  createChip: (name: string) => void;
+  customChips: Component[];
   nodes: CustomNodes[];
   edges: WireEdge[];
   onNodesChange: OnNodesChange<CustomNodes>;
@@ -31,12 +33,7 @@ export interface SimulationStore {
   setEdges: (edges: WireEdge[]) => void;
 }
 
-const nand_a = new CompIO({
-  name: "nand",
-  numInputs: 2,
-  numOutputs: 1,
-  update: nand,
-}); // c_id: 0
+const nand_a = new CompIO(nandGateChip); // c_id: 0
 
 nand_a.add_connection(0, { componentId: 0, inputIndex: 1 }); // nand_a -> nand_a
 
@@ -116,6 +113,16 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       }),
     });
   },
+  createChip: (name: string) => {
+    const circuit = new Circuit("Circuit", 0, 0, []);
+    get().circuit.name = name;
+    set((state) => ({
+      customChips: [...state.customChips, get().circuit],
+    }));
+    const { nodes, edges } = circuitToFlow(circuit);
+    set({ circuit, nodes, edges });
+  },
+  customChips: [],
   nodes: initialNodes,
   edges: initialEdges,
   onNodesChange: (changes) => {

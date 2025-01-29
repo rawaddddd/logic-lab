@@ -26,6 +26,7 @@ import {
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
 import { DragEndEvent } from "./typedDnd";
 import { CustomNodes } from "./Nodes";
+import clone from "clone";
 
 const { DndContext } = sidebarDnd;
 
@@ -76,6 +77,8 @@ function App() {
     // );
     updateCircuit1(circuit.inputPins.map((inputPin) => inputPin.value));
   };
+  const createChip = useSimulationStore((state) => state.createChip);
+  const customChips = useSimulationStore((state) => state.customChips);
 
   useCopyPaste(circuit, setNodes, setEdges);
 
@@ -133,7 +136,7 @@ function App() {
       };
       setNodes([...nodes, newNode]);
     } else if (active.data.current.type === "chip") {
-      const compIO = new CompIO(active.data.current.component);
+      const compIO = new CompIO(clone(active.data.current.component));
       compIO.extraProperties.position = position;
       const id = circuit.addComponent(compIO);
 
@@ -158,6 +161,8 @@ function App() {
   );
 
   const [numInputHandles, setNumInputHandles] = useState(2);
+
+  const [name, setName] = useState("");
 
   return (
     <DndContext onDragEnd={onDragEnd}>
@@ -189,23 +194,26 @@ function App() {
               </Panel>
             )}
             <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white">
-              <label
-                htmlFor="num-handles"
-                className="mb-1 text-nowrap block text-sm font-medium text-gray-500"
-              >
-                Input handles:
-              </label>
-              <input
-                id="num-handles"
-                type="number"
-                min={2}
-                value={numInputHandles}
-                className="w-20 border rounded-lg"
-                onChange={(e) => {
-                  setNumInputHandles(Number(e.target.value));
-                }}
-              />
+              <div className="flex flex-row items-center space-x-2">
+                <label
+                  htmlFor="num-handles"
+                  className="mb-1 text-nowrap block text-sm font-medium text-gray-500"
+                >
+                  Input pins:
+                </label>
+                <input
+                  id="num-handles"
+                  type="number"
+                  min={2}
+                  value={numInputHandles}
+                  className="w-20 border rounded-lg"
+                  onChange={(e) => {
+                    setNumInputHandles(Number(e.target.value));
+                  }}
+                />
+              </div>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <span className="font-thin text-gray-500">I/O</span>
               <Draggable id="INPUT" data={{ type: "input" }}>
                 <div>INPUT</div>
               </Draggable>
@@ -213,6 +221,9 @@ function App() {
                 <div>OUTPUT</div>
               </Draggable>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <span className="font-thin text-gray-500">
+                Built-in Tristate Logic Chips
+              </span>
               <Draggable
                 id="Pull-Up Resistor"
                 data={{ type: "chip", component: pullUpResistorChip }}
@@ -231,14 +242,17 @@ function App() {
                   type: "chip",
                   component: {
                     ...tristateBufferChip,
-                    numInputs: numInputHandles,
-                    numOutputs: numInputHandles - 1,
+                    numInputs: () => numInputHandles,
+                    numOutputs: () => numInputHandles - 1,
                   },
                 }}
               >
                 <div>Tristate Buffer</div>
               </Draggable>
               <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <span className="font-thin text-gray-500">
+                Built-in Logic Gates
+              </span>
               <Draggable
                 id="NOT"
                 data={{ type: "chip", component: notGateChip }}
@@ -251,14 +265,32 @@ function App() {
                   key={chip.name}
                   data={{
                     type: "chip",
-                    component: { ...chip, numInputs: numInputHandles },
+                    component: { ...chip, numInputs: () => numInputHandles },
                   }}
                 >
                   <div>{chip.name}</div>
                 </Draggable>
               ))}
+              {customChips.length > 0 && (
+                <>
+                  <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+                  <span className="font-thin text-gray-500">Custom Chips</span>
+                  {customChips.map((chip) => (
+                    <Draggable
+                      id={chip.name}
+                      key={chip.name}
+                      data={{
+                        type: "chip",
+                        component: chip,
+                      }}
+                    >
+                      <div>{chip.name}</div>
+                    </Draggable>
+                  ))}
+                </>
+              )}
             </div>
-            <Panel position="bottom-center">
+            <Panel position="bottom-center" className="flex flex-row space-x-2">
               <div className="flex flex-row items-center shadow-md rounded-md border bg-white">
                 <div className="flex flex-row py-2 px-4 items-center space-x-2">
                   <label
@@ -306,6 +338,20 @@ function App() {
                 >
                   <IconExposurePlus1 className="text-gray-500 group-disabled:text-gray-300" />
                 </button>
+              </div>
+              <div className="px-4 py-2 flex flex-row items-center shadow-md rounded-md border bg-white space-x-2">
+                <button
+                  className="px-4 py-2 text-nowrap border"
+                  onClick={() => createChip(name)}
+                >
+                  Create chip
+                </button>
+                <input
+                  className="h-full px-2 py-1 border"
+                  placeholder="Chip Name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                />
               </div>
             </Panel>
           </ReactFlow>
