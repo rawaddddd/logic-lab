@@ -381,6 +381,37 @@ export class Circuit implements Component {
     };
   }
 
+  public getHangingPins(
+    inputConnections: Index[][],
+    componentConnections: Index[][][],
+    componentIds: ID[]
+  ) {
+    return componentIds.map((componentId) => {
+      const numInputs = this.getComponent(componentId)!.component.numInputs;
+      return [...Array(numInputs).keys()].filter(
+        (componentInputPin) =>
+          !(
+            inputConnections.some((inputPin) =>
+              inputPin.some(
+                (connection) =>
+                  connection.componentId === componentId &&
+                  connection.inputIndex === componentInputPin
+              )
+            ) ||
+            componentConnections.some((component) =>
+              component.some((outputPin) =>
+                outputPin.some(
+                  (connection) =>
+                    connection.componentId === componentId &&
+                    connection.inputIndex === componentInputPin
+                )
+              )
+            )
+          )
+      );
+    });
+  }
+
   public duplicateComponents(
     inputPinIds: ID[],
     outputPinIds: ID[],
@@ -388,6 +419,12 @@ export class Circuit implements Component {
   ) {
     const { inputConnections, outputConnections, componentConnections } =
       this.getInternalConnections(inputPinIds, outputPinIds, componentIds);
+
+    const hangingPins = this.getHangingPins(
+      inputConnections,
+      componentConnections,
+      componentIds
+    );
 
     const inputPinIdsMap = new Map<ID, ID>();
     inputPinIds.forEach((originalId) =>
@@ -404,12 +441,13 @@ export class Circuit implements Component {
       )
     );
     const componentIdsMap = new Map<ID, ID>();
-    componentIds.forEach((originalId) =>
-      componentIdsMap.set(
-        originalId,
-        this.addComponent(new CompIO(this.getComponent(originalId)!.component))
-      )
-    );
+    componentIds.forEach((originalId, i) => {
+      const component = clone(this.getComponent(originalId)!);
+      hangingPins[i].forEach(
+        (hangingPin) => (component.inputs[hangingPin] = undefined)
+      );
+      componentIdsMap.set(originalId, this.addComponent(component));
+    });
 
     const newInputConnections = inputConnections.map((inputPin) =>
       inputPin.map(
