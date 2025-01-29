@@ -176,7 +176,6 @@ function App() {
             onPaneClick={() => setCurrentNodeId(undefined)}
             defaultEdgeOptions={{
               type: "custom",
-              data: { sourceHandleIndex: 0 },
             }}
           >
             {currentNodeId !== undefined && (

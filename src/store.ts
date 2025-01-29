@@ -279,7 +279,15 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
 
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge(
+        {
+          ...connection,
+          data: {
+            sourceHandleIndex: Number(connection.sourceHandle?.split("-")[1]),
+          },
+        },
+        get().edges
+      ),
     });
   },
   setNodes: (nodes) => {
