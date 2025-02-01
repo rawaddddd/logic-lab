@@ -27,6 +27,17 @@ import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
 import { DragEndEvent } from "./typedDnd";
 import { CustomNodes } from "./Nodes";
 import clone from "clone";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
+import { Slider } from "./components/ui/slider";
+import { Label } from "./components/ui/label";
+import { Separator } from "./components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "./components/ui/tooltip";
+import { NumberInput } from "./components/ui/numberInput";
 
 const { DndContext } = sidebarDnd;
 
@@ -193,26 +204,22 @@ function App() {
                 <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
               </Panel>
             )}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white space-y-2">
               <div className="flex flex-row items-center space-x-2">
-                <label
-                  htmlFor="num-handles"
-                  className="mb-1 text-nowrap block text-sm font-medium text-gray-500"
-                >
+                <Label htmlFor="num-handles" className="text-nowrap">
                   Input pins:
-                </label>
-                <input
+                </Label>
+                <NumberInput
                   id="num-handles"
-                  type="number"
                   min={2}
                   value={numInputHandles}
-                  className="w-20 border rounded-lg"
-                  onChange={(e) => {
-                    setNumInputHandles(Number(e.target.value));
+                  className="w-20"
+                  onValueChange={(value) => {
+                    if (value !== undefined) setNumInputHandles(value);
                   }}
                 />
               </div>
-              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <Separator />
               <span className="font-thin text-gray-500">I/O</span>
               <Draggable id="INPUT" data={{ type: "input" }}>
                 <div>INPUT</div>
@@ -220,7 +227,7 @@ function App() {
               <Draggable id="OUTPUT" data={{ type: "output" }}>
                 <div>OUTPUT</div>
               </Draggable>
-              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <Separator />
               <span className="font-thin text-gray-500">
                 Built-in Tristate Logic Chips
               </span>
@@ -249,7 +256,7 @@ function App() {
               >
                 <div>Tristate Buffer</div>
               </Draggable>
-              <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+              <Separator />
               <span className="font-thin text-gray-500">
                 Built-in Logic Gates
               </span>
@@ -273,7 +280,7 @@ function App() {
               ))}
               {customChips.length > 0 && (
                 <>
-                  <hr className="my-2 w-full border border-t-0 bg-gray-300" />
+                  <Separator />
                   <span className="font-thin text-gray-500">Custom Chips</span>
                   {customChips.map((chip) => (
                     <Draggable
@@ -291,68 +298,88 @@ function App() {
               )}
             </div>
             <Panel position="bottom-center" className="flex flex-row space-x-2">
-              <div className="flex flex-row items-center shadow-md rounded-md border bg-white">
-                <div className="flex flex-row py-2 px-4 items-center space-x-2">
-                  <label
-                    htmlFor="tick-range"
-                    className="text-nowrap block text-sm font-medium text-gray-500"
-                  >
+              <div className="px-4 py-2 flex flex-row items-center shadow-md rounded-md border bg-white space-x-2">
+                <div className="flex flex-row items-center space-x-2">
+                  <Label htmlFor="tick-range" className="text-nowrap">
                     Ticks per second:
-                  </label>
+                  </Label>
                   <div>
-                    <input
+                    <Slider
                       id="tick-range"
-                      type="range"
                       min={1}
                       max={100}
-                      value={tickRate}
-                      className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
-                      onChange={(e) => {
-                        setTickRate(Number(e.target.value));
+                      defaultValue={[tickRate]}
+                      className="w-40"
+                      onValueChange={(value) => {
+                        setTickRate(value[0]);
                       }}
                     />
-                    <div className="flex flex-row justify-between">
-                      <span className="text-xs text-gray-500">1</span>
-                      <span className="text-xs text-gray-500">100</span>
+                    <div className="mt-2 flex flex-row justify-between">
+                      <span className="text-xs">1</span>
+                      <span className="text-xs">100</span>
                     </div>
                   </div>
                 </div>
-                <button
-                  className="px-4 py-2 rounded-e-md border-l disabled:cursor-not-allowed disabled:text-gray-300"
-                  onClick={() => {
-                    setPlaying(!playing);
-                  }}
-                >
-                  {playing ? (
-                    <IconPlayerPauseFilled className="text-gray-500" />
-                  ) : (
-                    <IconPlayerPlayFilled className="text-gray-500" />
-                  )}
-                </button>
-                <button
-                  className="group px-4 py-2 rounded-e-md border-l disabled:cursor-not-allowed"
-                  disabled={playing}
-                  onClick={() => {
-                    updateCircuit();
-                  }}
-                >
-                  <IconExposurePlus1 className="text-gray-500 group-disabled:text-gray-300" />
-                </button>
+                <Separator orientation="vertical" />
+                <div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setPlaying(!playing);
+                        }}
+                      >
+                        {playing ? (
+                          <IconPlayerPauseFilled />
+                        ) : (
+                          <IconPlayerPlayFilled />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {playing ? "Pause" : "Play"}
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Separator orientation="vertical" />
+                <div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={playing}
+                        onClick={() => {
+                          updateCircuit();
+                        }}
+                      >
+                        <IconExposurePlus1 />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Single step</TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
               <div className="px-4 py-2 flex flex-row items-center shadow-md rounded-md border bg-white space-x-2">
-                <button
-                  className="px-4 py-2 text-nowrap border"
-                  onClick={() => createChip(name)}
-                >
-                  Create chip
-                </button>
-                <input
-                  className="h-full px-2 py-1 border"
+                <Button onClick={() => createChip(name)}>Create chip</Button>
+                <Input
+                  className="w-fit"
                   placeholder="Chip Name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                 />
               </div>
+              {/* <div className="shadow-md rounded-md">
+                <Button
+                  className="h-full w-full"
+                  size="lg"
+                  onClick={() => createChip(name)}
+                >
+                  Create chip
+                </Button>
+              </div> */}
             </Panel>
           </ReactFlow>
         </div>

@@ -1,6 +1,8 @@
-import { CSSProperties, HTMLAttributes } from "react";
+import { CSSProperties } from "react";
 import { sidebarDnd } from "./sidebarDnd";
 import { Component } from "./Simulation";
+import { Button, ButtonProps } from "./components/ui/button";
+import { cn } from "./lib/utils";
 
 const { useDraggable } = sidebarDnd;
 
@@ -17,12 +19,18 @@ interface ComponentData {
   component: Component;
 }
 
-type DraggableProps = HTMLAttributes<HTMLDivElement> & {
+type DraggableProps = ButtonProps & {
   id: string | number;
   data: InputData | OutputData | ComponentData;
 };
 
-export function Draggable({ id, data, ...rest }: DraggableProps) {
+export function Draggable({
+  id,
+  data,
+  className,
+  variant = "secondary",
+  ...rest
+}: DraggableProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id,
@@ -31,25 +39,36 @@ export function Draggable({ id, data, ...rest }: DraggableProps) {
   const style: CSSProperties =
     isDragging && transform !== null
       ? {
-          position: "absolute",
           transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-          cursor: "grabbing",
         }
-      : {
-          cursor: "grab",
-        };
+      : {};
 
   return (
     <>
       <div>
-        <div
+        <Button
           ref={setNodeRef}
           style={style}
+          variant={variant}
+          className={cn(
+            "transition-shadow z-50",
+            {
+              "absolute shadow-lg cursor-grabbing": isDragging,
+              "hover:shadow-md cursor-grab": !isDragging,
+            },
+            className
+          )}
           {...listeners}
           {...attributes}
           {...rest}
-        ></div>
-        {isDragging && <div className="opacity-50" {...rest}></div>}
+        ></Button>
+        {isDragging && (
+          <Button
+            variant={variant}
+            className={cn("opacity-50 pointer-events-none", className)}
+            {...rest}
+          ></Button>
+        )}
       </div>
     </>
   );
