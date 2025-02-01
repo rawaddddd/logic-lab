@@ -1,6 +1,6 @@
 import { Circuit } from "./Simulation";
-import { CustomNodes } from "./Nodes";
-import WireEdge from "./WireEdge";
+import { CustomNodes } from "./components/nodes/Nodes";
+import WireEdge from "./components/nodes/WireEdge";
 
 export function circuitToFlow(circuit: Circuit): {
   nodes: CustomNodes[];

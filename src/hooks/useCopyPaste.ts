@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
-import { Circuit } from "./Simulation";
-import { circuitToFlow } from "./transform";
-import WireEdge from "./WireEdge";
+import { Circuit } from "../Simulation";
+import { circuitToFlow } from "../transform";
+import WireEdge from "../components/nodes/WireEdge";
 import { CustomNodes } from "./Nodes";
 
 export const useCopyPaste = (

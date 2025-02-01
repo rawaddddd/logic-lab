@@ -14,9 +14,11 @@ import {
   isChipNode,
   isInputNode,
   isOutputNode,
-} from "./Nodes";
-import WireEdge from "./WireEdge";
+} from "./components/nodes/Nodes";
+import WireEdge from "./components/nodes/WireEdge";
 import { circuitToFlow } from "./transform";
+import { DragData } from "./sidebarDnd";
+import clone from "clone";
 
 export interface SimulationStore {
   circuit: Circuit;
@@ -24,6 +26,7 @@ export interface SimulationStore {
   updateCircuit: (input: Bit[]) => void;
   createChip: (name: string) => void;
   customChips: Component[];
+  onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   nodes: CustomNodes[];
   edges: WireEdge[];
   onNodesChange: OnNodesChange<CustomNodes>;
@@ -123,6 +126,61 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     set({ circuit, nodes, edges });
   },
   customChips: [],
+  onDropChip: (dragData: DragData, position: { x: number; y: number }) => {
+    if (dragData.type === "input") {
+      const id = get().circuit.addInputPin({
+        connections: [],
+        value: undefined,
+        extraProperties: { position },
+      });
+      const newNode: CustomNodes = {
+        id: `input-${id}`,
+        type: "input",
+        position: position,
+        selected: undefined,
+        data: {
+          state: undefined,
+          id,
+        },
+      };
+      set((state) => ({ nodes: [...state.nodes, newNode] }));
+    } else if (dragData.type === "output") {
+      const id = get().circuit.addOutputPin({
+        connections: [],
+        value: undefined,
+        extraProperties: { position },
+      });
+      const newNode: CustomNodes = {
+        id: `output-${id}`,
+        type: "output",
+        position: position,
+        selected: undefined,
+        data: {
+          state: undefined,
+          id,
+        },
+      };
+      set((state) => ({ nodes: [...state.nodes, newNode] }));
+    } else if (dragData.type === "chip") {
+      const compIO = new CompIO(clone(dragData.component));
+      compIO.extraProperties.position = position;
+      const id = get().circuit.addComponent(compIO);
+
+      const newNode: CustomNodes = {
+        id: `chip-${id}`,
+        type: "chip",
+        position: position,
+        selected: undefined,
+        data: {
+          name: compIO.component.name,
+          inputs: compIO.inputs,
+          outputs: compIO.outputs,
+          id,
+        },
+      };
+      set((state) => ({ nodes: [...state.nodes, newNode] }));
+    }
+  },
   nodes: initialNodes,
   edges: initialEdges,
   onNodesChange: (changes) => {

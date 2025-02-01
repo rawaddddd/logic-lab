@@ -1,5 +1,5 @@
 import type { Node } from "@xyflow/react";
-import { Bit } from "./Simulation";
+import { Bit } from "@/Simulation";
 
 export type InputNodeData = {
   state: Bit;

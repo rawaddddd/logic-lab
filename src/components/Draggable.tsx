@@ -1,8 +1,8 @@
 import { CSSProperties } from "react";
-import { sidebarDnd } from "./sidebarDnd";
-import { Component } from "./Simulation";
-import { Button, ButtonProps } from "./components/ui/button";
-import { cn } from "./lib/utils";
+import { sidebarDnd } from "@/sidebarDnd";
+import { Component } from "@/Simulation";
+import { Button, ButtonProps } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const { useDraggable } = sidebarDnd;
 

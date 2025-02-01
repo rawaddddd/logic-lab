@@ -1,5 +1,5 @@
 import { HTMLAttributes } from "react";
-import { sidebarDnd } from "./sidebarDnd";
+import { sidebarDnd } from "@/sidebarDnd";
 
 const { useDroppable } = sidebarDnd;
 
