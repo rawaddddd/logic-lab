@@ -26,8 +26,11 @@ type TypesafeOver<DropData> = Omit<Over, "data"> & {
   data: React.MutableRefObject<DropData | undefined>;
 };
 
-export type DragStartEvent<Active> = Omit<OriginalDragStartEvent, "active"> & {
-  active: Active;
+export type DragStartEvent<DragData> = Omit<
+  OriginalDragStartEvent,
+  "active"
+> & {
+  active: TypesafeActive<DragData>;
 };
 
 export type DragMoveEvent<DragData, DropData> = Omit<

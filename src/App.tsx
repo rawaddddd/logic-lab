@@ -14,6 +14,8 @@ import { CustomNodes } from "./components/nodes/Nodes";
 import ChipSelectionMenu from "./components/ChipSelectionMenu";
 import SimulationControls from "./components/SimulationControls";
 import ChipCreationMenu from "./components/ChipCreationMenu";
+import { DragOverlay } from "@dnd-kit/core";
+import { Button } from "./components/ui/button";
 
 const { DndContext } = sidebarDnd;
 
@@ -75,9 +77,18 @@ function App() {
   const [currentNodeId, setCurrentNodeId] = useState<string | undefined>(
     undefined
   );
+  const [activeId, setActiveId] = useState<string | number | null>(null);
 
   return (
-    <DndContext onDragEnd={onDragEnd}>
+    <DndContext
+      onDragStart={(event) => {
+        setActiveId(event.active.id);
+      }}
+      onDragEnd={(event) => {
+        setActiveId(null);
+        onDragEnd(event);
+      }}
+    >
       <Droppable id={"rfCanvas"}>
         <div className="w-screen h-screen">
           <ReactFlow
@@ -105,7 +116,7 @@ function App() {
                 <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
               </Panel>
             )}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center shadow-md rounded-md border bg-white space-y-2">
+            <div className="absolute h-96 right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center overflow-x-hidden overflow-y-scroll shadow-md rounded-md border bg-white space-y-2">
               <ChipSelectionMenu />
             </div>
             <Panel position="bottom-center" className="flex flex-row space-x-2">
@@ -115,6 +126,31 @@ function App() {
           </ReactFlow>
         </div>
       </Droppable>
+      <DragOverlay
+        dropAnimation={{
+          duration: 150,
+          keyframes: ({ dragOverlay: { node } }) => [
+            {
+              boxShadow: getComputedStyle(node).boxShadow,
+              opacity: getComputedStyle(node).opacity,
+            },
+            {
+              boxShadow: "none",
+              opacity: 0,
+            },
+          ],
+          sideEffects: () => {},
+        }}
+        className="cursor-grabbing shadow-lg"
+      >
+        <div>
+          {activeId !== null ? (
+            <Button variant="secondary" className="pointer-events-none">
+              {activeId}
+            </Button>
+          ) : null}
+        </div>
+      </DragOverlay>
     </DndContext>
   );
 }

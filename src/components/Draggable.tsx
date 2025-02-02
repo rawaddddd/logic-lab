@@ -1,4 +1,3 @@
-import { CSSProperties } from "react";
 import { sidebarDnd } from "@/sidebarDnd";
 import { Component } from "@/Simulation";
 import { Button, ButtonProps } from "@/components/ui/button";
@@ -31,45 +30,28 @@ export function Draggable({
   variant = "secondary",
   ...rest
 }: DraggableProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id,
-      data,
-    });
-  const style: CSSProperties =
-    isDragging && transform !== null
-      ? {
-          transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        }
-      : {};
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id,
+    data,
+  });
 
   return (
-    <>
-      <div>
-        <Button
-          ref={setNodeRef}
-          style={style}
-          variant={variant}
-          className={cn(
-            "transition-shadow z-50",
-            {
-              "absolute shadow-lg cursor-grabbing": isDragging,
-              "hover:shadow-md cursor-grab": !isDragging,
-            },
-            className
-          )}
-          {...listeners}
-          {...attributes}
-          {...rest}
-        ></Button>
-        {isDragging && (
-          <Button
-            variant={variant}
-            className={cn("opacity-50 pointer-events-none", className)}
-            {...rest}
-          ></Button>
+    <div>
+      <Button
+        ref={setNodeRef}
+        variant={variant}
+        className={cn(
+          "transition-[box-shadow,opacity] cursor-grab hover:shadow-md",
+          {
+            "opacity-50 duration-0": isDragging,
+            "duration-150": !isDragging,
+          },
+          className
         )}
-      </div>
-    </>
+        {...listeners}
+        {...attributes}
+        {...rest}
+      ></Button>
+    </div>
   );
 }
