@@ -22,6 +22,8 @@ export function circuitToFlow(circuit: Circuit): {
         name: component.component.name,
         inputs: component.inputs,
         outputs: component.outputs,
+        inputNames: component.component.inputNames(),
+        outputNames: component.component.outputNames(),
         id: component.id,
       },
     });
@@ -37,7 +39,11 @@ export function circuitToFlow(circuit: Circuit): {
         y: 0,
       },
       selected: inputPin.extraProperties.selected,
-      data: { state: inputPin.value, id: inputPin.id },
+      data: {
+        name: inputPin.extraProperties.name,
+        state: inputPin.value,
+        id: inputPin.id,
+      },
     });
   });
 
@@ -51,7 +57,11 @@ export function circuitToFlow(circuit: Circuit): {
         y: 400,
       },
       selected: outputPin.extraProperties.selected,
-      data: { state: outputPin.value, id: outputPin.id },
+      data: {
+        name: outputPin.extraProperties.name,
+        state: outputPin.value,
+        id: outputPin.id,
+      },
     });
   });
 

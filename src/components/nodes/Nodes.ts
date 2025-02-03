@@ -2,6 +2,7 @@ import type { Node } from "@xyflow/react";
 import { Bit } from "@/Simulation";
 
 export type InputNodeData = {
+  name: string;
   state: Bit;
   id: number;
 };
@@ -12,12 +13,15 @@ export type ChipNodeData = {
   name: string;
   inputs: Bit[];
   outputs: Bit[];
+  inputNames: (string | undefined)[];
+  outputNames: (string | undefined)[];
   id: number; // compIO index in parent circuit's components array
 };
 
 export type ChipNode = Node<ChipNodeData, "chip">;
 
 export type OutputNodeData = {
+  name: string;
   state: Bit;
   id: number;
 };

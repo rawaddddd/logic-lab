@@ -2,8 +2,12 @@ import { Handle, NodeProps, Position } from "@xyflow/react";
 import SingleConnectionHandle from "./SingleConnectionHandle";
 import { type ChipNode } from "./Nodes";
 import { memo } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { cn } from "@/lib/utils";
 
-function ChipNode({ data: { name, inputs, outputs } }: NodeProps<ChipNode>) {
+function ChipNode({
+  data: { name, inputs, outputs, inputNames, outputNames },
+}: NodeProps<ChipNode>) {
   return (
     <div
       className={
@@ -12,19 +16,25 @@ function ChipNode({ data: { name, inputs, outputs } }: NodeProps<ChipNode>) {
     >
       <div className="py-1 flex flex-col justify-around">
         {inputs.map((input, i) => (
-          <div key={i}>
-            <SingleConnectionHandle
-              id={`input-${i}`}
-              type="target"
-              position={Position.Left}
-              className={`!relative w-2 h-2 mb-1 border border-white rounded-lg ${
-                input === undefined
-                  ? "!bg-gray-800"
-                  : input
-                  ? "!bg-red-500"
-                  : "!bg-gray-500"
-              }`}
-            />
+          <div key={i} className="relative w-0 my-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SingleConnectionHandle
+                  id={`input-${i}`}
+                  type="target"
+                  position={Position.Left}
+                  className={cn(
+                    "relative inset-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 border border-white rounded-full",
+                    input === undefined
+                      ? "bg-gray-800"
+                      : input
+                      ? "bg-red-500"
+                      : "bg-gray-500"
+                  )}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="left">{inputNames[i]}</TooltipContent>
+            </Tooltip>
           </div>
         ))}
       </div>
@@ -33,19 +43,25 @@ function ChipNode({ data: { name, inputs, outputs } }: NodeProps<ChipNode>) {
       </div>
       <div className="py-1 flex flex-col justify-around">
         {outputs.map((output, i) => (
-          <div key={i}>
-            <Handle
-              id={`output-${i}`}
-              type="source"
-              position={Position.Right}
-              className={`!relative w-2 h-2 mb-1 border border-white rounded-lg ${
-                output === undefined
-                  ? "!bg-gray-800"
-                  : output
-                  ? "!bg-red-500"
-                  : "!bg-gray-500"
-              }`}
-            />
+          <div key={i} className="relative w-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Handle
+                  id={`output-${i}`}
+                  type="source"
+                  position={Position.Right}
+                  className={cn(
+                    "relative inset-0 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 border border-white rounded-full",
+                    output === undefined
+                      ? "bg-gray-800"
+                      : output
+                      ? "bg-red-500"
+                      : "bg-gray-500"
+                  )}
+                />
+              </TooltipTrigger>
+              <TooltipContent side="right">{outputNames[i]}</TooltipContent>
+            </Tooltip>
           </div>
         ))}
       </div>

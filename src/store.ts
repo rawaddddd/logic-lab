@@ -14,6 +14,7 @@ import {
   isChipNode,
   isInputNode,
   isOutputNode,
+  OutputNodeData,
 } from "./components/nodes/Nodes";
 import WireEdge from "./components/nodes/WireEdge";
 import { circuitToFlow } from "./transform";
@@ -131,14 +132,16 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const id = get().circuit.addInputPin({
         connections: [],
         value: undefined,
-        extraProperties: { position },
+        extraProperties: { position, name: "" },
       });
+      get().circuit.getInputPin(id)!.extraProperties.name = `Input ${id}`;
       const newNode: CustomNodes = {
         id: `input-${id}`,
         type: "input",
         position: position,
         selected: undefined,
         data: {
+          name: `Input ${id}`,
           state: undefined,
           id,
         },
@@ -148,14 +151,16 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const id = get().circuit.addOutputPin({
         connections: [],
         value: undefined,
-        extraProperties: { position },
+        extraProperties: { position, name: "" },
       });
+      get().circuit.getOutputPin(id)!.extraProperties.name = `Output ${id}`;
       const newNode: CustomNodes = {
         id: `output-${id}`,
         type: "output",
         position: position,
         selected: undefined,
         data: {
+          name: `Output ${id}`,
           state: undefined,
           id,
         },
@@ -175,6 +180,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           name: compIO.component.name,
           inputs: compIO.inputs,
           outputs: compIO.outputs,
+          inputNames: compIO.component.inputNames(),
+          outputNames: compIO.component.outputNames(),
           id,
         },
       };
@@ -191,6 +198,13 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           get().circuit.getInputPin(node.data.id)!.value = (
             change.item.data as InputNodeData
           ).state;
+          get().circuit.getInputPin(node.data.id)!.extraProperties.name = (
+            change.item.data as InputNodeData
+          ).name;
+        } else if (isOutputNode(node)) {
+          get().circuit.getOutputPin(node.data.id)!.extraProperties.name = (
+            change.item.data as OutputNodeData
+          ).name;
         }
       } else if (change.type === "position") {
         const node = get().nodes.find((node) => node.id === change.id)!;

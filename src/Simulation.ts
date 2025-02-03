@@ -11,6 +11,8 @@ export interface Component {
   name: string;
   numInputs: () => number;
   numOutputs: () => number;
+  inputNames: () => (string | undefined)[];
+  outputNames: () => (string | undefined)[];
   update: (input: Bit[]) => Bit[];
 }
 
@@ -25,7 +27,7 @@ type ExtraProperties = {
 interface IOPin {
   connections: Index[]; // When used as an input pin, inputIndex works as usual. When used as an output pin, inputIndex is actually outputIndex
   value: Bit;
-  extraProperties: ExtraProperties;
+  extraProperties: ExtraProperties & { name: string };
 }
 
 export class CompIO {
@@ -89,14 +91,14 @@ export class Circuit implements Component {
       this.addInputPin({
         connections: [] as Index[],
         value: undefined as Bit,
-        extraProperties: {},
+        extraProperties: { name: `Input ${i}` },
       });
     }
     for (let i = 0; i < numOutputs; i++) {
       this.addOutputPin({
         connections: [] as Index[],
         value: undefined as Bit,
-        extraProperties: {},
+        extraProperties: { name: `Output ${i}` },
       });
     }
     components.forEach((component) => {
@@ -110,6 +112,14 @@ export class Circuit implements Component {
 
   public numOutputs() {
     return this.outputPins.length;
+  }
+
+  public inputNames() {
+    return this.inputPins.map((inputPin) => inputPin.extraProperties.name);
+  }
+
+  public outputNames() {
+    return this.outputPins.map((outputPin) => outputPin.extraProperties.name);
   }
 
   public getInputPin(id: ID) {
@@ -646,6 +656,8 @@ export const notGateChip = {
   name: "NOT",
   numInputs: () => 1,
   numOutputs: () => 1,
+  inputNames: () => ["Input"],
+  outputNames: () => ["Output"],
   update: not,
 };
 
@@ -653,6 +665,12 @@ export const andGateChip = {
   name: "AND",
   numInputs: () => 2,
   numOutputs: () => 1,
+  inputNames: function () {
+    return Array(this.numInputs())
+      .fill(0)
+      .map((_, index) => `Input ${index + 1}`);
+  },
+  outputNames: () => ["Output"],
   update: and,
 };
 
@@ -660,6 +678,12 @@ export const nandGateChip = {
   name: "NAND",
   numInputs: () => 2,
   numOutputs: () => 1,
+  inputNames: function () {
+    return Array(this.numInputs())
+      .fill(0)
+      .map((_, index) => `Input ${index + 1}`);
+  },
+  outputNames: () => ["Output"],
   update: nand,
 };
 
@@ -667,6 +691,12 @@ export const orGateChip = {
   name: "OR",
   numInputs: () => 2,
   numOutputs: () => 1,
+  inputNames: function () {
+    return Array(this.numInputs())
+      .fill(0)
+      .map((_, index) => `Input ${index + 1}`);
+  },
+  outputNames: () => ["Output"],
   update: or,
 };
 
@@ -674,6 +704,12 @@ export const norGateChip = {
   name: "NOR",
   numInputs: () => 2,
   numOutputs: () => 1,
+  inputNames: function () {
+    return Array(this.numInputs())
+      .fill(0)
+      .map((_, index) => `Input ${index + 1}`);
+  },
+  outputNames: () => ["Output"],
   update: nor,
 };
 
@@ -681,6 +717,19 @@ export const tristateBufferChip = {
   name: "Tristate Buffer",
   numInputs: () => 2,
   numOutputs: () => 1,
+  inputNames: function () {
+    return [
+      "Enable",
+      ...Array(this.numInputs() - 1)
+        .fill(0)
+        .map((_, index) => `Input ${index + 1}`),
+    ];
+  },
+  outputNames: function () {
+    return Array(this.numOutputs())
+      .fill(0)
+      .map((_, index) => `Output ${index + 1}`);
+  },
   update: tristateBuffer,
 };
 
@@ -688,6 +737,8 @@ export const pullUpResistorChip = {
   name: "Pull-Up Resistor",
   numInputs: () => 1,
   numOutputs: () => 1,
+  inputNames: () => ["Input"],
+  outputNames: () => ["Output"],
   update: pullUpResistor,
 };
 
@@ -695,6 +746,8 @@ export const pullDownResistorChip = {
   name: "Pull-Down Resistor",
   numInputs: () => 1,
   numOutputs: () => 1,
+  inputNames: () => ["Input"],
+  outputNames: () => ["Output"],
   update: pullDownResistor,
 };
 
