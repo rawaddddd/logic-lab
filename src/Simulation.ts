@@ -122,6 +122,24 @@ export class Circuit implements Component {
     return this.outputPins.map((outputPin) => outputPin.extraProperties.name);
   }
 
+  public reconstructInputIds() {
+    this.inputPins.forEach((inputPin, index) => {
+      this.inputPinIdMap.set(inputPin.id, index);
+    });
+  }
+
+  public reconstructOutputIds() {
+    this.outputPins.forEach((outputPin, index) => {
+      this.outputPinIdMap.set(outputPin.id, index);
+    });
+  }
+
+  public reconstructComponentIds() {
+    this.components.forEach((component, index) => {
+      this.componentIdMap.set(component.id, index);
+    });
+  }
+
   public getInputPin(id: ID) {
     const index = this.inputPinIdMap.get(id);
     return index === undefined ? undefined : this.inputPins[index];

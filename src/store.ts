@@ -118,6 +118,19 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     });
   },
   createChip: (name: string) => {
+    get().circuit.inputPins.sort(
+      (a, b) =>
+        (a.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER) -
+        (b.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER)
+    );
+    get().circuit.reconstructInputIds();
+    get().circuit.outputPins.sort(
+      (a, b) =>
+        (a.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER) -
+        (b.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER)
+    );
+    get().circuit.reconstructOutputIds();
+
     const circuit = new Circuit("Circuit", 0, 0, []);
     get().circuit.name = name;
     set((state) => ({
