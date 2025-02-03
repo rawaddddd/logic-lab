@@ -11,13 +11,14 @@ import { useState } from "react";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { useSimulationStore } from "@/store";
+import React from "react";
 
-function ChipSelectionMenu() {
+const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   const [numInputHandles, setNumInputHandles] = useState(2);
   const customChips = useSimulationStore((state) => state.customChips);
 
   return (
-    <>
+    <div ref={ref} className="p-4 flex flex-col items-center space-y-2">
       <div className="flex flex-row items-center space-x-2">
         <Label htmlFor="num-handles" className="text-nowrap">
           Input pins:
@@ -35,10 +36,10 @@ function ChipSelectionMenu() {
       <Separator />
       <span className="font-thin text-gray-500">I/O</span>
       <Draggable id="INPUT" data={{ type: "input" }}>
-        <div>INPUT</div>
+        INPUT
       </Draggable>
       <Draggable id="OUTPUT" data={{ type: "output" }}>
-        <div>OUTPUT</div>
+        OUTPUT
       </Draggable>
       <Separator />
       <span className="font-thin text-gray-500">
@@ -48,13 +49,13 @@ function ChipSelectionMenu() {
         id="Pull-Up Resistor"
         data={{ type: "chip", component: pullUpResistorChip }}
       >
-        <div>Pull-Up Resistor</div>
+        Pull-Up Resistor
       </Draggable>
       <Draggable
         id="Pull-Down Resistor"
         data={{ type: "chip", component: pullDownResistorChip }}
       >
-        <div>Pull-Down Resistor</div>
+        Pull-Down Resistor
       </Draggable>
       <Draggable
         id="Tristate Buffer"
@@ -67,12 +68,12 @@ function ChipSelectionMenu() {
           },
         }}
       >
-        <div>Tristate Buffer</div>
+        Tristate Buffer
       </Draggable>
       <Separator />
       <span className="font-thin text-gray-500">Built-in Logic Gates</span>
       <Draggable id="NOT" data={{ type: "chip", component: notGateChip }}>
-        <div>NOT</div>
+        NOT
       </Draggable>
       {builtinCircuits.slice(4).map((chip) => (
         <Draggable
@@ -83,7 +84,7 @@ function ChipSelectionMenu() {
             component: { ...chip, numInputs: () => numInputHandles },
           }}
         >
-          <div>{chip.name}</div>
+          {chip.name}
         </Draggable>
       ))}
       {customChips.length > 0 && (
@@ -99,13 +100,13 @@ function ChipSelectionMenu() {
                 component: chip,
               }}
             >
-              <div>{chip.name}</div>
+              {chip.name}
             </Draggable>
           ))}
         </>
       )}
-    </>
+    </div>
   );
-}
+});
 
 export default ChipSelectionMenu;

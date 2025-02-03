@@ -118,21 +118,21 @@ function App() {
                 position="top-left"
                 className="p-4 shadow-md rounded-md border bg-white text-sm"
               >
-                <Droppable id="debug" noDrop>
+                <Droppable id="debug" asChild noDrop>
                   <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
                 </Droppable>
               </Panel>
             )}
-            <div className="absolute h-96 right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center overflow-x-hidden overflow-y-scroll shadow-md rounded-md border bg-white space-y-2">
-              <Droppable id="chipSelectionMenu" noDrop>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white">
+              <Droppable id="chipSelectionMenu" asChild noDrop>
                 <ChipSelectionMenu />
               </Droppable>
-            </div>
+            </div>{" "}
             <Panel position="bottom-center" className="flex flex-row space-x-2">
-              <Droppable id="simulationControls" noDrop>
+              <Droppable id="simulationControls" asChild noDrop>
                 <SimulationControls />
               </Droppable>
-              <Droppable id="chipCreationMenu" noDrop>
+              <Droppable id="chipCreationMenu" asChild noDrop>
                 <ChipCreationMenu />
               </Droppable>
             </Panel>
@@ -156,13 +156,11 @@ function App() {
         }}
         className="cursor-grabbing shadow-lg"
       >
-        <div>
-          {activeId !== null ? (
-            <Button variant="secondary" className="pointer-events-none">
-              {activeId}
-            </Button>
-          ) : null}
-        </div>
+        {activeId !== null ? (
+          <Button variant="secondary" className="pointer-events-none">
+            {activeId}
+          </Button>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

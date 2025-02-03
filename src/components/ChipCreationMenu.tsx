@@ -14,17 +14,22 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Label } from "./ui/label";
+import React from "react";
 
-function ChipCreationMenu() {
+const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
   const createChip = useSimulationStore((state) => state.createChip);
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="h-full text-md">Create chip</Button>
-      </DialogTrigger>
+      <div>
+        <DialogTrigger asChild>
+          <Button ref={ref} className="h-full text-md shadow-md">
+            Create chip
+          </Button>
+        </DialogTrigger>
+      </div>
       <DialogPortal>
         <form
           onSubmit={(event) => {
@@ -67,6 +72,6 @@ function ChipCreationMenu() {
       </DialogPortal>
     </Dialog>
   );
-}
+});
 
 export default ChipCreationMenu;
