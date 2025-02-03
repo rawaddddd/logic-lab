@@ -5,12 +5,13 @@ const { useDroppable } = sidebarDnd;
 
 type DroppableProps = HTMLAttributes<HTMLDivElement> & {
   id: string | number;
+  noDrop?: boolean;
 };
 
-export function Droppable({ id, ...rest }: DroppableProps) {
+export function Droppable({ id, noDrop = false, ...rest }: DroppableProps) {
   const { setNodeRef } = useDroppable({
     id,
-    data: {},
+    data: { noDrop },
   });
 
   return <div ref={setNodeRef} {...rest}></div>;

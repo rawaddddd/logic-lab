@@ -6,6 +6,6 @@ export type DragData =
   | { type: "output" }
   | { type: "chip"; component: Component };
 
-export type DropData = {};
+export type DropData = { noDrop: boolean };
 
 export const sidebarDnd = typedDnd<DragData, DropData>();

@@ -61,6 +61,11 @@ function App() {
     const { over, active } = event;
     if (over === null) return;
 
+    if (over.data.current?.noDrop) {
+      // console.log("Cannot dorp here");
+      return;
+    }
+
     const droppableRect = over.rect;
     const draggableRect = active.rect;
     if (draggableRect.current.translated === null) return;
@@ -113,15 +118,23 @@ function App() {
                 position="top-left"
                 className="p-4 shadow-md rounded-md border bg-white text-sm"
               >
-                <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
+                <Droppable id="debug" noDrop>
+                  <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
+                </Droppable>
               </Panel>
             )}
             <div className="absolute h-96 right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 p-4 flex flex-col items-center overflow-x-hidden overflow-y-scroll shadow-md rounded-md border bg-white space-y-2">
-              <ChipSelectionMenu />
+              <Droppable id="chipSelectionMenu" noDrop>
+                <ChipSelectionMenu />
+              </Droppable>
             </div>
             <Panel position="bottom-center" className="flex flex-row space-x-2">
-              <SimulationControls />
-              <ChipCreationMenu />
+              <Droppable id="simulationControls" noDrop>
+                <SimulationControls />
+              </Droppable>
+              <Droppable id="chipCreationMenu" noDrop>
+                <ChipCreationMenu />
+              </Droppable>
             </Panel>
           </ReactFlow>
         </div>
