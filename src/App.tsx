@@ -72,8 +72,14 @@ function App() {
     if (draggableRect.current.translated === null) return;
     if (active.data.current == null) return;
 
-    const x = draggableRect.current.translated.left - droppableRect.left;
-    const y = draggableRect.current.translated.top - droppableRect.top;
+    const x =
+      draggableRect.current.translated.left -
+      droppableRect.left +
+      draggableRect.current.translated.width / 2;
+    const y =
+      draggableRect.current.translated.top -
+      droppableRect.top +
+      draggableRect.current.translated.height / 2;
 
     const position = screenToFlowPosition({ x, y });
 
@@ -108,6 +114,7 @@ function App() {
               nodeTypes={nodeTypes}
               edgeTypes={edgeTypes}
               fitView
+              nodeOrigin={[0.5, 0.5]}
               onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
                 setCurrentNodeId(node.id);
               }}
