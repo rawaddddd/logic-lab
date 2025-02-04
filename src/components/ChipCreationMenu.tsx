@@ -33,7 +33,6 @@ const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
       <DialogPortal>
         <form
           onSubmit={(event) => {
-            console.log("here");
             event.preventDefault();
             createChip(name);
             setOpen(false);

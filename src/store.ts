@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Bit, Circuit, CompIO, Component, nandGateChip } from "./Simulation";
+import { Bit, Circuit, CompIO, nandGateChip } from "./Simulation";
 import {
   addEdge,
   applyEdgeChanges,
@@ -20,14 +20,17 @@ import WireEdge from "./components/nodes/WireEdge";
 import { circuitToFlow } from "./transform";
 import { DragData } from "./sidebarDnd";
 import clone from "clone";
+import { deserialise, serialise } from "./serialise";
 
 export interface SimulationStore {
   circuit: Circuit;
   setCircuit: (newCircuit: Circuit) => void;
   updateCircuit: (input: Bit[]) => void;
   createChip: (name: string) => void;
-  customChips: Component[];
+  customChips: Circuit[];
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
+  save: () => void;
+  open: (file: File) => void;
   nodes: CustomNodes[];
   edges: WireEdge[];
   onNodesChange: OnNodesChange<CustomNodes>;
@@ -199,6 +202,35 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         },
       };
       set((state) => ({ nodes: [...state.nodes, newNode] }));
+    }
+  },
+  save: () => {
+    const json = serialise(get().customChips);
+    const blob = new Blob([json], { type: "application/json" });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = "file.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+  open: (file: File) => {
+    if (file.type === "application/json") {
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        try {
+          const deserialisedData = deserialise(e.target!.result as string);
+          set({ customChips: deserialisedData });
+        } catch (err) {
+          console.warn("Invalid JSON file.");
+        }
+      };
+
+      reader.readAsText(file);
+    } else {
+      console.warn("Not a JSON file");
     }
   },
   nodes: initialNodes,

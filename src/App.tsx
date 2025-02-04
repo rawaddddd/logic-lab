@@ -16,6 +16,7 @@ import SimulationControls from "./components/SimulationControls";
 import ChipCreationMenu from "./components/ChipCreationMenu";
 import { DragOverlay } from "@dnd-kit/core";
 import { Button } from "./components/ui/button";
+import AppMenuBar from "./components/AppMenuBar";
 
 const { DndContext } = sidebarDnd;
 
@@ -95,48 +96,54 @@ function App() {
       }}
     >
       <Droppable id={"rfCanvas"}>
-        <div className="w-screen h-screen">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            edgeTypes={edgeTypes}
-            fitView
-            onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
-              setCurrentNodeId(node.id);
-            }}
-            onPaneClick={() => setCurrentNodeId(undefined)}
-            defaultEdgeOptions={{
-              type: "custom",
-            }}
-          >
-            {currentNodeId !== undefined && (
+        <div className="w-screen h-screen flex flex-col">
+          <AppMenuBar />
+          <div className="w-full h-full">
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView
+              onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
+                setCurrentNodeId(node.id);
+              }}
+              onPaneClick={() => setCurrentNodeId(undefined)}
+              defaultEdgeOptions={{
+                type: "custom",
+              }}
+            >
+              {currentNodeId !== undefined && (
+                <Panel
+                  position="top-left"
+                  className="p-4 shadow-md rounded-md border bg-white text-sm"
+                >
+                  <Droppable id="debug" asChild noDrop>
+                    <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
+                  </Droppable>
+                </Panel>
+              )}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white">
+                <Droppable id="chipSelectionMenu" asChild noDrop>
+                  <ChipSelectionMenu />
+                </Droppable>
+              </div>{" "}
               <Panel
-                position="top-left"
-                className="p-4 shadow-md rounded-md border bg-white text-sm"
+                position="bottom-center"
+                className="flex flex-row space-x-2"
               >
-                <Droppable id="debug" asChild noDrop>
-                  <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
+                <Droppable id="simulationControls" asChild noDrop>
+                  <SimulationControls />
+                </Droppable>
+                <Droppable id="chipCreationMenu" asChild noDrop>
+                  <ChipCreationMenu />
                 </Droppable>
               </Panel>
-            )}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white">
-              <Droppable id="chipSelectionMenu" asChild noDrop>
-                <ChipSelectionMenu />
-              </Droppable>
-            </div>{" "}
-            <Panel position="bottom-center" className="flex flex-row space-x-2">
-              <Droppable id="simulationControls" asChild noDrop>
-                <SimulationControls />
-              </Droppable>
-              <Droppable id="chipCreationMenu" asChild noDrop>
-                <ChipCreationMenu />
-              </Droppable>
-            </Panel>
-          </ReactFlow>
+            </ReactFlow>
+          </div>
         </div>
       </Droppable>
       <DragOverlay

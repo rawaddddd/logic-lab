@@ -24,7 +24,7 @@ type ExtraProperties = {
   selected?: boolean;
 };
 
-interface IOPin {
+export interface IOPin {
   connections: Index[]; // When used as an input pin, inputIndex works as usual. When used as an output pin, inputIndex is actually outputIndex
   value: Bit;
   extraProperties: ExtraProperties & { name: string };
@@ -50,7 +50,7 @@ export class CompIO {
   }
 }
 
-type ID = number;
+export type ID = number;
 
 type WithID<T> = T extends new (...args: any[]) => infer R
   ? new (...args: ConstructorParameters<T>) => R & { id: ID }
