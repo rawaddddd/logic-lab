@@ -8,6 +8,7 @@ import {
   MenubarTrigger,
 } from "./ui/menubar";
 import { ChangeEvent, useRef } from "react";
+import { ModeToggle } from "./mode-toggle";
 
 function AppMenuBar() {
   const save = useSimulationStore((state) => state.save);
@@ -24,7 +25,7 @@ function AppMenuBar() {
   };
 
   return (
-    <Menubar>
+    <Menubar className="flex flex-row justify-between rounded-none border-0 border-b">
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
@@ -46,6 +47,7 @@ function AppMenuBar() {
         className="hidden"
         onChange={handleFileChange}
       />
+      <ModeToggle className="self-stretch w-auto h-full aspect-square" />
     </Menubar>
   );
 }

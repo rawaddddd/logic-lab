@@ -50,10 +50,10 @@ function WireEdge({
       path={edgePath}
       className={`!stroke-2 ${
         state === undefined
-          ? "!stroke-gray-800"
+          ? "stroke-gray-800 dark:stroke-gray-700"
           : state
-          ? "!stroke-red-500 [stroke-dasharray:5]"
-          : "!stroke-gray-500"
+          ? "stroke-red-500 [stroke-dasharray:5]"
+          : "stroke-gray-500 dark:stroke-gray-50"
       }`}
       style={{
         animation: "dashdraw 0.5s linear infinite",

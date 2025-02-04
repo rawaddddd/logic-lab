@@ -40,13 +40,15 @@ const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create chip</DialogTitle>
+              <DialogTitle className="dark:text-gray-50">
+                Create chip
+              </DialogTitle>
               <DialogDescription>
                 Convert the current circuit into a reusable chip.
               </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-[1fr,5fr] items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+              <Label htmlFor="name" className="text-right dark:text-gray-50">
                 Name
               </Label>
               <Input

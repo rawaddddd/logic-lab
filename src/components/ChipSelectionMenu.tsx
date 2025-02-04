@@ -6,7 +6,7 @@ import {
   pullUpResistorChip,
   tristateBufferChip,
 } from "@/Simulation";
-import { NumberInput } from "./ui/numberInput";
+import { NumberInput } from "./ui/number-input";
 import { useState } from "react";
 import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
@@ -20,7 +20,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   return (
     <div ref={ref} className="p-4 flex flex-col items-center space-y-2">
       <div className="flex flex-row items-center space-x-2">
-        <Label htmlFor="num-handles" className="text-nowrap">
+        <Label htmlFor="num-handles" className="text-nowrap dark:text-gray-50">
           Input pins:
         </Label>
         <NumberInput
@@ -34,7 +34,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
         />
       </div>
       <Separator />
-      <span className="font-thin text-gray-500">I/O</span>
+      <span className="font-thin text-gray-500 dark:text-gray-50">I/O</span>
       <Draggable id="INPUT" data={{ type: "input" }}>
         INPUT
       </Draggable>
@@ -42,7 +42,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
         OUTPUT
       </Draggable>
       <Separator />
-      <span className="font-thin text-gray-500">
+      <span className="font-thin text-gray-500 dark:text-gray-50">
         Built-in Tristate Logic Chips
       </span>
       <Draggable
@@ -71,7 +71,9 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
         Tristate Buffer
       </Draggable>
       <Separator />
-      <span className="font-thin text-gray-500">Built-in Logic Gates</span>
+      <span className="font-thin text-gray-500 dark:text-gray-50">
+        Built-in Logic Gates
+      </span>
       <Draggable id="NOT" data={{ type: "chip", component: notGateChip }}>
         NOT
       </Draggable>
@@ -90,7 +92,9 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
       {customChips.length > 0 && (
         <>
           <Separator />
-          <span className="font-thin text-gray-500">Custom Chips</span>
+          <span className="font-thin text-gray-500 dark:text-gray-50">
+            Custom Chips
+          </span>
           {customChips.map((chip) => (
             <Draggable
               id={chip.name}

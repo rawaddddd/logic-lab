@@ -115,18 +115,19 @@ function App() {
               defaultEdgeOptions={{
                 type: "custom",
               }}
+              className="bg-white dark:bg-gray-950"
             >
               {currentNodeId !== undefined && (
                 <Panel
                   position="top-left"
-                  className="p-4 shadow-md rounded-md border bg-white text-sm"
+                  className="p-4 shadow-md rounded-md border bg-white dark:bg-gray-950 dark:border-gray-800 dark:text-gray-50 text-sm"
                 >
                   <Droppable id="debug" asChild noDrop>
                     <pre>{JSON.stringify(getNode(currentNodeId), null, 2)}</pre>
                   </Droppable>
                 </Panel>
               )}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white">
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white dark:bg-gray-950 dark:border-gray-800">
                 <Droppable id="chipSelectionMenu" asChild noDrop>
                   <ChipSelectionMenu />
                 </Droppable>

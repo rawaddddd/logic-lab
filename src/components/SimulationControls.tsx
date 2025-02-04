@@ -29,10 +29,10 @@ const SimulationControls = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   return (
     <div
       ref={ref}
-      className="px-4 py-2 flex flex-row items-center shadow-md rounded-md border bg-white space-x-2"
+      className="px-4 py-2 flex flex-row items-center shadow-md rounded-md border bg-white space-x-2 dark:bg-gray-950 dark:border-gray-800"
     >
       <div className="flex flex-row items-center space-x-2">
-        <Label htmlFor="tick-range" className="text-nowrap">
+        <Label htmlFor="tick-range" className="text-nowrap dark:text-gray-50">
           Ticks per second:
         </Label>
         <div>
@@ -47,8 +47,8 @@ const SimulationControls = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
             }}
           />
           <div className="mt-2 flex flex-row justify-between">
-            <span className="text-xs">1</span>
-            <span className="text-xs">100</span>
+            <span className="text-xs dark:text-gray-50">1</span>
+            <span className="text-xs dark:text-gray-50">100</span>
           </div>
         </div>
       </div>
@@ -62,6 +62,7 @@ const SimulationControls = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
               onClick={() => {
                 setPlaying(!playing);
               }}
+              className="dark:text-gray-50"
             >
               {playing ? <IconPlayerPauseFilled /> : <IconPlayerPlayFilled />}
             </Button>
@@ -80,6 +81,7 @@ const SimulationControls = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
               onClick={() => {
                 updateCircuit();
               }}
+              className="dark:text-gray-50"
             >
               <IconExposurePlus1 />
             </Button>

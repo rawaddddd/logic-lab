@@ -6,3 +6,9 @@
     --radius: 0.5rem
   }
 }
+
+.react-flow {
+  --xy-attribution-background-color-default: rgba(0, 0, 0, 0);
+  --xy-node-border-default: none;
+  --xy-node-border-selected-default: none;
+}
