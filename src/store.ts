@@ -40,6 +40,7 @@ export interface SimulationStore {
   setEdges: (edges: WireEdge[]) => void;
   backgroundVariant: BackgroundVariant | "none";
   setBackgroundVariant: (backgroundVariant: BackgroundVariant | "none") => void;
+  reloadDiagram: () => void;
 }
 
 const nand_a = new CompIO(nandGateChip); // c_id: 0
@@ -58,8 +59,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   setCircuit: (newCircuit: Circuit) => set({ circuit: newCircuit }),
   updateCircuit: (input: Bit[]) => {
     get().circuit.update(input);
-    // const { nodes, edges } = circuitToFlow(get().circuit);
-    // set({ nodes, edges });
     set({
       nodes: get().nodes.map((node) => {
         if (node.type === "chip") {
@@ -423,7 +422,11 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     set({ edges });
   },
   backgroundVariant: BackgroundVariant.Lines,
-  setBackgroundVariant(backgroundVariant) {
+  setBackgroundVariant: (backgroundVariant) => {
     set({ backgroundVariant });
+  },
+  reloadDiagram: () => {
+    const { nodes, edges } = circuitToFlow(get().circuit);
+    set({ nodes, edges });
   },
 }));

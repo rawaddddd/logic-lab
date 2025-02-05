@@ -37,6 +37,8 @@ function AppMenuBar() {
     (state) => state.setBackgroundVariant
   );
 
+  const reloadDiagram = useSimulationStore((state) => state.reloadDiagram);
+
   return (
     <Menubar className="flex flex-row justify-between rounded-none border-0 border-b">
       <div className="flex flex-row space-x-1">
@@ -80,6 +82,8 @@ function AppMenuBar() {
                 </MenubarRadioGroup>
               </MenubarSubContent>
             </MenubarSub>
+            <MenubarSeparator />
+            <MenubarItem onSelect={reloadDiagram}>Reload Diagram</MenubarItem>
           </MenubarContent>
         </MenubarMenu>
       </div>
