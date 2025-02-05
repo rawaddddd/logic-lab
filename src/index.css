@@ -3,7 +3,7 @@
 @tailwind utilities;
 @layer base {
   :root {
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
 }
 
@@ -11,4 +11,11 @@
   --xy-attribution-background-color-default: rgba(0, 0, 0, 0);
   --xy-node-border-default: none;
   --xy-node-border-selected-default: none;
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(0deg); }
+ 50% { transform: rotate(15deg); }
+ 75% { transform: rotate(-15deg); }
+100% { transform: rotate(0deg); }
 }

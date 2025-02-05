@@ -4,15 +4,21 @@ import { type ChipNode } from "./Nodes";
 import { memo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { cn } from "@/lib/utils";
+import { colord } from "colord";
 
 function ChipNode({
-  data: { name, inputs, outputs, inputNames, outputNames },
+  data: { name, color: bgColor, inputs, outputs, inputNames, outputNames },
 }: NodeProps<ChipNode>) {
+  const color = colord(bgColor);
+  const luminance = color.luminance();
+
   return (
     <div
-      className={
-        "flex flex-row justify-between rounded-sm border-2 border-gray-500 bg-white dark:bg-gray-950 dark:border-gray-50"
-      }
+      className={cn(
+        "flex flex-row justify-between rounded-sm border-2",
+        luminance > 0.5 ? "border-gray-700" : "border-gray-50"
+      )}
+      style={{ backgroundColor: colord(color).toHslString() }}
     >
       <div className="py-1 flex flex-col justify-around">
         {inputs.map((input, i) => (
@@ -40,9 +46,10 @@ function ChipNode({
         ))}
       </div>
       <div
-        className={
-          "px-4 py-1 font-bold self-center text-gray-500 dark:text-gray-50"
-        }
+        className={cn(
+          "px-4 py-1 font-bold self-center",
+          luminance > 0.5 ? "text-gray-700" : "text-gray-50"
+        )}
       >
         {name}
       </div>

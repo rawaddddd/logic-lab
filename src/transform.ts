@@ -20,6 +20,7 @@ export function circuitToFlow(circuit: Circuit): {
       selected: component.extraProperties.selected,
       data: {
         name: component.component.name,
+        color: component.component.color,
         inputs: component.inputs,
         outputs: component.outputs,
         inputNames: component.component.inputNames(),

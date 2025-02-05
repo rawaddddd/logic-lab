@@ -16,3 +16,7 @@ export function composeRefs<T>(...refs: (React.Ref<T> | undefined)[]) {
     });
   };
 }
+
+export function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}

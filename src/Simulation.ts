@@ -1,4 +1,5 @@
 import clone from "clone";
+import { HslColor } from "colord";
 
 export type Bit = boolean | undefined;
 
@@ -9,6 +10,7 @@ export interface Index {
 
 export interface Component {
   name: string;
+  color: HslColor;
   numInputs: () => number;
   numOutputs: () => number;
   inputNames: () => (string | undefined)[];
@@ -58,6 +60,7 @@ type WithID<T> = T extends new (...args: any[]) => infer R
 
 export class Circuit implements Component {
   name: string;
+  color: HslColor;
   inputPins: WithID<IOPin>[];
   outputPins: WithID<IOPin>[];
 
@@ -78,6 +81,7 @@ export class Circuit implements Component {
     components: CompIO[]
   ) {
     this.name = name;
+    this.color = { h: 0, s: 0, l: 0 };
 
     this.inputPinIdMap = new Map();
     this.outputPinIdMap = new Map();
@@ -672,6 +676,7 @@ export function pullDownResistor(input: Bit[]): Bit[] {
 
 export const notGateChip = {
   name: "NOT",
+  color: { h: 350, s: 61, l: 46 },
   numInputs: () => 1,
   numOutputs: () => 1,
   inputNames: () => ["Input"],
@@ -681,6 +686,7 @@ export const notGateChip = {
 
 export const andGateChip = {
   name: "AND",
+  color: { h: 221, s: 72, l: 54 },
   numInputs: () => 2,
   numOutputs: () => 1,
   inputNames: function () {
@@ -694,6 +700,7 @@ export const andGateChip = {
 
 export const nandGateChip = {
   name: "NAND",
+  color: { h: 265, s: 61, l: 51 },
   numInputs: () => 2,
   numOutputs: () => 1,
   inputNames: function () {
@@ -707,6 +714,7 @@ export const nandGateChip = {
 
 export const orGateChip = {
   name: "OR",
+  color: { h: 37, s: 74, l: 54 },
   numInputs: () => 2,
   numOutputs: () => 1,
   inputNames: function () {
@@ -720,6 +728,7 @@ export const orGateChip = {
 
 export const norGateChip = {
   name: "NOR",
+  color: { h: 21, s: 68, l: 48 },
   numInputs: () => 2,
   numOutputs: () => 1,
   inputNames: function () {
@@ -733,6 +742,7 @@ export const norGateChip = {
 
 export const tristateBufferChip = {
   name: "Tristate Buffer",
+  color: { h: 192, s: 41, l: 27 },
   numInputs: () => 2,
   numOutputs: () => 1,
   inputNames: function () {
@@ -753,6 +763,7 @@ export const tristateBufferChip = {
 
 export const pullUpResistorChip = {
   name: "Pull-Up Resistor",
+  color: { h: 77, s: 39, l: 51 },
   numInputs: () => 1,
   numOutputs: () => 1,
   inputNames: () => ["Input"],
@@ -762,6 +773,7 @@ export const pullUpResistorChip = {
 
 export const pullDownResistorChip = {
   name: "Pull-Down Resistor",
+  color: { h: 91, s: 55, l: 30 },
   numInputs: () => 1,
   numOutputs: () => 1,
   inputNames: () => ["Input"],

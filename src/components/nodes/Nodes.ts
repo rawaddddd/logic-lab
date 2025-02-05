@@ -1,5 +1,6 @@
 import type { Node } from "@xyflow/react";
 import { Bit } from "@/Simulation";
+import { HslColor } from "colord";
 
 export type InputNodeData = {
   name: string;
@@ -11,6 +12,7 @@ export type InputNode = Node<InputNodeData, "input">;
 
 export type ChipNodeData = {
   name: string;
+  color: HslColor;
   inputs: Bit[];
   outputs: Bit[];
   inputNames: (string | undefined)[];

@@ -6,6 +6,10 @@ import "./index.css";
 import { ReactFlowProvider } from "@xyflow/react";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
 import { ThemeProvider } from "./components/theme-provider.tsx";
+import { extend } from "colord";
+import a11yPlugin from "colord/plugins/a11y";
+
+extend([a11yPlugin]);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

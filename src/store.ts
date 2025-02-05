@@ -22,11 +22,12 @@ import { circuitToFlow } from "./transform";
 import { DragData } from "./sidebarDnd";
 import clone from "clone";
 import { deserialise, serialise } from "./serialise";
+import { HslColor } from "colord";
 export interface SimulationStore {
   circuit: Circuit;
   setCircuit: (newCircuit: Circuit) => void;
   updateCircuit: (input: Bit[]) => void;
-  createChip: (name: string) => void;
+  createChip: (name: string, color: HslColor) => void;
   customChips: Circuit[];
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   save: () => void;
@@ -121,7 +122,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       }),
     });
   },
-  createChip: (name: string) => {
+  createChip: (name: string, color: HslColor) => {
     get().circuit.inputPins.sort(
       (a, b) =>
         (a.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER) -
@@ -137,6 +138,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
     const circuit = new Circuit("Circuit", 0, 0, []);
     get().circuit.name = name;
+    get().circuit.color = color;
     set((state) => ({
       customChips: [...state.customChips, get().circuit],
     }));
@@ -195,6 +197,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         selected: undefined,
         data: {
           name: compIO.component.name,
+          color: compIO.component.color,
           inputs: compIO.inputs,
           outputs: compIO.outputs,
           inputNames: compIO.component.inputNames(),

@@ -1,3 +1,4 @@
+import { HslColor } from "colord";
 import {
   andGateChip,
   Circuit,
@@ -16,6 +17,7 @@ import {
 
 interface SerialisedCircuit {
   name: string;
+  color: HslColor;
   inputPins: (IOPin & { id: ID })[];
   outputPins: (IOPin & { id: ID })[];
   components: (Omit<CompIO, "component" | "add_connection"> & {
@@ -27,8 +29,9 @@ interface SerialisedCircuit {
 export function serialise(circuits: Circuit[]): string {
   return JSON.stringify(
     circuits.map<SerialisedCircuit>(
-      ({ name, inputPins, outputPins, components }) => ({
+      ({ name, color, inputPins, outputPins, components }) => ({
         name,
+        color,
         inputPins: inputPins.map(({ extraProperties, ...rest }) => ({
           ...rest,
           extraProperties: { ...extraProperties, selected: undefined },
@@ -76,6 +79,7 @@ export function deserialise(json: string): Circuit[] {
 
     stack.add(data.name);
     const circuit = new Circuit(data.name, 0, 0, []);
+    circuit.color = data.color;
     circuitMap.set(data.name, circuit);
 
     // ID Mapping (old ID -> new ID)
