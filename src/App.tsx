@@ -1,4 +1,10 @@
-import { Panel, ReactFlow, useReactFlow } from "@xyflow/react";
+import {
+  Background,
+  BackgroundVariant,
+  Panel,
+  ReactFlow,
+  useReactFlow,
+} from "@xyflow/react";
 import InputNode from "./components/nodes/InputNode";
 import OutputNode from "./components/nodes/OutputNode";
 import WireEdge from "./components/nodes/WireEdge";
@@ -91,6 +97,10 @@ function App() {
   );
   const [activeId, setActiveId] = useState<string | number | null>(null);
 
+  const backgroundVariant = useSimulationStore(
+    (state) => state.backgroundVariant
+  );
+
   return (
     <DndContext
       onDragStart={(event) => {
@@ -124,6 +134,30 @@ function App() {
               }}
               className="bg-white dark:bg-gray-950"
             >
+              {backgroundVariant !== "none" && (
+                <>
+                  <Background
+                    id="1"
+                    offset={
+                      backgroundVariant === BackgroundVariant.Dots ? 21 : 0
+                    }
+                    patternClassName="!stroke-gray-500/25"
+                    variant={backgroundVariant}
+                  />
+                  <Background
+                    id="2"
+                    gap={200}
+                    patternClassName="!stroke-gray-500/25"
+                    variant={BackgroundVariant.Lines}
+                  />
+                  <Background
+                    id="3"
+                    gap={2000}
+                    patternClassName="!stroke-gray-500/25"
+                    variant={BackgroundVariant.Lines}
+                  />
+                </>
+              )}
               {currentNodeId !== undefined && (
                 <Panel
                   position="top-left"

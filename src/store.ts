@@ -4,6 +4,7 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
+  BackgroundVariant,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
@@ -21,7 +22,6 @@ import { circuitToFlow } from "./transform";
 import { DragData } from "./sidebarDnd";
 import clone from "clone";
 import { deserialise, serialise } from "./serialise";
-
 export interface SimulationStore {
   circuit: Circuit;
   setCircuit: (newCircuit: Circuit) => void;
@@ -38,6 +38,8 @@ export interface SimulationStore {
   onConnect: OnConnect;
   setNodes: (nodes: CustomNodes[]) => void;
   setEdges: (edges: WireEdge[]) => void;
+  backgroundVariant: BackgroundVariant | "none";
+  setBackgroundVariant: (backgroundVariant: BackgroundVariant | "none") => void;
 }
 
 const nand_a = new CompIO(nandGateChip); // c_id: 0
@@ -419,5 +421,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   },
   setEdges: (edges) => {
     set({ edges });
+  },
+  backgroundVariant: BackgroundVariant.Lines,
+  setBackgroundVariant(backgroundVariant) {
+    set({ backgroundVariant });
   },
 }));

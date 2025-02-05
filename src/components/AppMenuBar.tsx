@@ -4,11 +4,17 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
   MenubarSeparator,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
   MenubarTrigger,
 } from "./ui/menubar";
 import { ChangeEvent, useRef } from "react";
 import { ModeToggle } from "./mode-toggle";
+import { BackgroundVariant } from "@xyflow/react";
 
 function AppMenuBar() {
   const save = useSimulationStore((state) => state.save);
@@ -24,29 +30,59 @@ function AppMenuBar() {
     open(file);
   };
 
+  const backgroundVariant = useSimulationStore(
+    (state) => state.backgroundVariant
+  );
+  const setBackgroundVariant = useSimulationStore(
+    (state) => state.setBackgroundVariant
+  );
+
   return (
     <Menubar className="flex flex-row justify-between rounded-none border-0 border-b">
-      <MenubarMenu>
-        <MenubarTrigger>File</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem
-            onSelect={() => {
-              fileInputRef.current?.click();
-            }}
-          >
-            Open
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onSelect={save}>Save</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <div className="flex flex-row space-x-1">
+        <MenubarMenu>
+          <MenubarTrigger>File</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem
+              onSelect={() => {
+                fileInputRef.current?.click();
+              }}
+            >
+              Open
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onSelect={save}>Save</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <MenubarMenu>
+          <MenubarTrigger>View</MenubarTrigger>
+          <MenubarContent>
+            <MenubarSub>
+              <MenubarSubTrigger>Background</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarRadioGroup
+                  value={backgroundVariant}
+                  onValueChange={(value) =>
+                    setBackgroundVariant(value as BackgroundVariant)
+                  }
+                >
+                  <MenubarRadioItem value="none">None</MenubarRadioItem>
+                  <MenubarRadioItem value="dots">Dots</MenubarRadioItem>
+                  <MenubarRadioItem value="cross">Cross</MenubarRadioItem>
+                  <MenubarRadioItem value="lines">Lines</MenubarRadioItem>
+                </MenubarRadioGroup>
+              </MenubarSubContent>
+            </MenubarSub>
+          </MenubarContent>
+        </MenubarMenu>
+      </div>
       <ModeToggle className="self-stretch w-auto h-full aspect-square" />
     </Menubar>
   );
