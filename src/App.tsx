@@ -23,6 +23,7 @@ import ChipCreationMenu from "./components/ChipCreationMenu";
 import { DragOverlay } from "@dnd-kit/core";
 import { Button } from "./components/ui/button";
 import AppMenuBar from "./components/AppMenuBar";
+import SubChipViewInspector from "./components/SubChipViewInspector";
 
 const { DndContext } = sidebarDnd;
 
@@ -61,6 +62,10 @@ function App() {
 
   const circuit = useSimulationStore((state) => state.circuit);
   const onDropChip = useSimulationStore((state) => state.onDropChip);
+  const isViewingSubChip = useSimulationStore(
+    (state) => state.chipViewingStack.length > 0
+  );
+  const viewChip = useSimulationStore((state) => state.viewChip);
 
   useCopyPaste(circuit, setNodes, setEdges);
 
@@ -125,6 +130,15 @@ function App() {
               edgeTypes={edgeTypes}
               fitView
               nodeOrigin={[0.5, 0.5]}
+              elementsSelectable={!isViewingSubChip}
+              nodesDraggable={!isViewingSubChip}
+              nodesConnectable={!isViewingSubChip}
+              zoomOnDoubleClick={false}
+              onNodeDoubleClick={(_event: MouseEvent, node: CustomNodes) => {
+                if (node.type === "chip") {
+                  viewChip(node.data.id);
+                }
+              }}
               onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
                 setCurrentNodeId(node.id);
               }}
@@ -168,11 +182,22 @@ function App() {
                   </Droppable>
                 </Panel>
               )}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white dark:bg-gray-950 dark:border-gray-800">
-                <Droppable id="chipSelectionMenu" asChild noDrop>
-                  <ChipSelectionMenu />
-                </Droppable>
-              </div>{" "}
+              {isViewingSubChip && (
+                <Panel
+                  position="top-center"
+                  className="px-4 py-2 shadow-md rounded-md border bg-white dark:bg-gray-950 dark:text-gray-50 dark:border-gray-800"
+                >
+                  <span className="font-bold">Viewing:</span>
+                  <SubChipViewInspector />
+                </Panel>
+              )}
+              {!isViewingSubChip && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 m-[15px] z-10 h-96 overflow-y-auto shadow-md rounded-md border bg-white dark:bg-gray-950 dark:border-gray-800">
+                  <Droppable id="chipSelectionMenu" asChild noDrop>
+                    <ChipSelectionMenu />
+                  </Droppable>
+                </div>
+              )}
               <Panel
                 position="bottom-center"
                 className="flex flex-row space-x-2"
@@ -180,9 +205,11 @@ function App() {
                 <Droppable id="simulationControls" asChild noDrop>
                   <SimulationControls />
                 </Droppable>
-                <Droppable id="chipCreationMenu" asChild noDrop>
-                  <ChipCreationMenu />
-                </Droppable>
+                {!isViewingSubChip && (
+                  <Droppable id="chipCreationMenu" asChild noDrop>
+                    <ChipCreationMenu />
+                  </Droppable>
+                )}
               </Panel>
             </ReactFlow>
           </div>

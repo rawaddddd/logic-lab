@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Bit, Circuit, CompIO, nandGateChip } from "./Simulation";
+import { Bit, Circuit, CompIO, ID, nandGateChip } from "./Simulation";
 import {
   addEdge,
   applyEdgeChanges,
@@ -32,6 +32,11 @@ export interface SimulationStore {
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   save: () => void;
   open: (file: File) => void;
+  chipViewingStack: { id: ID; chip: Circuit }[];
+  clearChipViewingStack: () => void;
+  popChipViewingStack: (index: number) => void;
+  getCurrentlyViewedChip: () => Circuit;
+  viewChip: (id: ID) => void;
   nodes: CustomNodes[];
   edges: WireEdge[];
   onNodesChange: OnNodesChange<CustomNodes>;
@@ -63,7 +68,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     set({
       nodes: get().nodes.map((node) => {
         if (node.type === "chip") {
-          const component = get().circuit.getComponent(node.data.id);
+          const component = get()
+            .getCurrentlyViewedChip()
+            .getComponent(node.data.id);
           if (component === undefined) {
             console.warn(
               `Component exists in UI but not in simulation. ID: ${node.data.id}`
@@ -84,7 +91,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
             };
           }
         } else if (node.type === "input") {
-          const inputPin = get().circuit.getInputPin(node.data.id);
+          const inputPin = get()
+            .getCurrentlyViewedChip()
+            .getInputPin(node.data.id);
           if (inputPin === undefined) {
             console.warn(
               `Input pin exists in UI but not in simulation. ID: ${node.data.id}`
@@ -101,7 +110,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
             };
           }
         } else if (node.type === "output") {
-          const outputPin = get().circuit.getOutputPin(node.data.id);
+          const outputPin = get()
+            .getCurrentlyViewedChip()
+            .getOutputPin(node.data.id);
           if (outputPin === undefined) {
             console.warn(
               `Output pin exists in UI but not in simulation. ID: ${node.data.id}`
@@ -142,8 +153,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     set((state) => ({
       customChips: [...state.customChips, get().circuit],
     }));
-    const { nodes, edges } = circuitToFlow(circuit);
-    set({ circuit, nodes, edges });
+    set({ circuit });
+    get().reloadDiagram();
   },
   customChips: [],
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => {
@@ -236,6 +247,44 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     } else {
       console.warn("Not a JSON file");
     }
+  },
+  chipViewingStack: [],
+  clearChipViewingStack: () => {
+    set({ chipViewingStack: [] });
+    get().reloadDiagram();
+  },
+  popChipViewingStack: (index: number) => {
+    set((state) => ({
+      chipViewingStack: state.chipViewingStack.slice(0, index + 1),
+    }));
+    get().reloadDiagram();
+  },
+  getCurrentlyViewedChip: () =>
+    get().chipViewingStack.at(get().chipViewingStack.length - 1)?.chip ??
+    get().circuit,
+  viewChip: (id: ID) => {
+    const chip = get().getCurrentlyViewedChip().getComponent(id);
+
+    if (chip === undefined) {
+      console.warn(
+        `Cannot view chip with ID ${id} in ${
+          get().circuit.name
+        } because it does not exist.`
+      );
+      return;
+    }
+
+    const circuit = chip.component;
+
+    if (!(circuit instanceof Circuit)) {
+      console.warn("Cannot view builtin circuits.");
+      return;
+    }
+
+    set((state) => ({
+      chipViewingStack: state.chipViewingStack.concat({ id, chip: circuit }),
+    }));
+    get().reloadDiagram();
   },
   nodes: initialNodes,
   edges: initialEdges,
@@ -429,7 +478,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     set({ backgroundVariant });
   },
   reloadDiagram: () => {
-    const { nodes, edges } = circuitToFlow(get().circuit);
+    const { nodes, edges } = circuitToFlow(get().getCurrentlyViewedChip());
     set({ nodes, edges });
   },
 }));
