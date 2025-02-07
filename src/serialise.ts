@@ -14,6 +14,7 @@ import {
   pullUpResistorChip,
   tristateBufferChip,
 } from "./Simulation";
+import clone from "clone";
 
 interface SerialisedCircuit {
   name: string;
@@ -120,7 +121,7 @@ export function deserialise(json: string): Circuit[] {
         component = buildCircuit(forwardDeclaredComponent);
       }
 
-      const compIO = new CompIO(component);
+      const compIO = new CompIO(clone(component));
       compIO.extraProperties = { ...extraProperties };
 
       const newId = circuit.addComponent(compIO);
