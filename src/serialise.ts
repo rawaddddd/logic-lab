@@ -19,11 +19,11 @@ import clone from "clone";
 interface SerialisedCircuit {
   name: string;
   color: HslColor;
-  inputPins: (IOPin & { id: ID })[];
-  outputPins: (IOPin & { id: ID })[];
-  components: (Omit<CompIO, "component" | "add_connection"> & {
-    name: string;
+  inputPins: Omit<IOPin & { id: ID }, "value">[];
+  outputPins: Omit<IOPin & { id: ID }, "value">[];
+  components: (Pick<CompIO, "connections" | "extraProperties"> & {
     id: ID;
+    name: string;
   })[];
 }
 
@@ -33,18 +33,21 @@ export function serialise(circuits: Circuit[]): string {
       ({ name, color, inputPins, outputPins, components }) => ({
         name,
         color,
-        inputPins: inputPins.map(({ extraProperties, ...rest }) => ({
-          ...rest,
+        inputPins: inputPins.map(({ id, connections, extraProperties }) => ({
+          id,
+          connections,
           extraProperties: { ...extraProperties, selected: undefined },
         })),
-        outputPins: outputPins.map(({ extraProperties, ...rest }) => ({
-          ...rest,
+        outputPins: outputPins.map(({ id, connections, extraProperties }) => ({
+          id,
+          connections,
           extraProperties: { ...extraProperties, selected: undefined },
         })),
         components: components.map(
-          ({ component, extraProperties, ...rest }) => ({
-            ...rest,
+          ({ component, extraProperties, id, connections }) => ({
+            id,
             name: component.name,
+            connections,
             extraProperties: { ...extraProperties, selected: undefined },
           })
         ),
@@ -89,20 +92,20 @@ export function deserialise(json: string): Circuit[] {
     const componentIdMap = new Map<ID, ID>();
 
     // Restore input pins
-    data.inputPins.forEach(({ id, value, extraProperties }) => {
+    data.inputPins.forEach(({ id, extraProperties }) => {
       const newId = circuit.addInputPin({
         connections: [],
-        value,
+        value: undefined,
         extraProperties: { ...extraProperties },
       });
       inputIdMap.set(id, newId);
     });
 
     // Restore output pins
-    data.outputPins.forEach(({ id, value, extraProperties }) => {
+    data.outputPins.forEach(({ id, extraProperties }) => {
       const newId = circuit.addOutputPin({
         connections: [],
-        value,
+        value: undefined,
         extraProperties: { ...extraProperties },
       });
       outputIdMap.set(id, newId);
