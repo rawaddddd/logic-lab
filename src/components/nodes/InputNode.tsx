@@ -9,14 +9,12 @@ import { cn } from "@/lib/utils";
 
 function InputNode({ id, data: { name, state } }: NodeProps<InputNode>) {
   const { updateNodeData } = useReactFlow();
-  const toggle = () => updateNodeData(id, { state: !state });
 
   return (
     <div className="border-none">
       <Tooltip>
         <TooltipTrigger asChild>
           <div
-            onClick={toggle}
             className={cn(
               "p-4 rounded-sm border-2 bg-white dark:bg-gray-950",
               state === undefined

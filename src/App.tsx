@@ -58,7 +58,7 @@ function App() {
     setEdges,
   } = useSimulationStore(useShallow(selector));
 
-  const { screenToFlowPosition, getNode } = useReactFlow();
+  const { screenToFlowPosition, getNode, updateNodeData } = useReactFlow();
 
   const circuit = useSimulationStore((state) => state.circuit);
   const onDropChip = useSimulationStore((state) => state.onDropChip);
@@ -141,6 +141,9 @@ function App() {
               }}
               onNodeClick={(_event: MouseEvent, node: CustomNodes) => {
                 setCurrentNodeId(node.id);
+                if (!isViewingSubChip && node.type === "input") {
+                  updateNodeData(node.id, { state: !node.data.state });
+                }
               }}
               onPaneClick={() => setCurrentNodeId(undefined)}
               defaultEdgeOptions={{
