@@ -12,6 +12,7 @@ import {
   orGateChip,
   pullDownResistorChip,
   pullUpResistorChip,
+  sevenSegmentDisplayChip,
   tristateBufferChip,
 } from "./Simulation";
 import clone from "clone";
@@ -57,6 +58,7 @@ export function serialise(circuits: Circuit[]): string {
 }
 
 const BUILTIN_CHIPS: { [key: string]: Component } = {
+  "Seven-Segment Display": sevenSegmentDisplayChip,
   NOT: notGateChip,
   AND: andGateChip,
   NAND: nandGateChip,

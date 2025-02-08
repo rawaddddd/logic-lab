@@ -7,7 +7,15 @@ import { cn } from "@/lib/utils";
 import { colord } from "colord";
 
 function ChipNode({
-  data: { name, color: bgColor, inputs, outputs, inputNames, outputNames },
+  data: {
+    name,
+    color: bgColor,
+    inputs,
+    outputs,
+    inputNames,
+    outputNames,
+    render,
+  },
 }: NodeProps<ChipNode>) {
   const color = colord(bgColor);
   const luminance = color.luminance();
@@ -47,11 +55,12 @@ function ChipNode({
       </div>
       <div
         className={cn(
-          "px-4 py-1 font-bold self-center",
+          "w-full self-stretch px-4 py-1 font-bold flex flex-col items-center justify-center space-y-2",
           luminance > 0.5 ? "text-gray-700" : "text-gray-50"
         )}
       >
-        {name}
+        <span>{name}</span>
+        {render !== undefined ? render(inputs) : null}
       </div>
       <div className="py-1 flex flex-col justify-around">
         {outputs.map((output, i) => (

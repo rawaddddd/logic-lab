@@ -4,6 +4,7 @@ import {
   notGateChip,
   pullDownResistorChip,
   pullUpResistorChip,
+  sevenSegmentDisplayChip,
   tristateBufferChip,
 } from "@/Simulation";
 import { NumberInput } from "./ui/number-input";
@@ -41,6 +42,12 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
       <Draggable id="OUTPUT" data={{ type: "output" }}>
         OUTPUT
       </Draggable>
+      <Draggable
+        id="Seven-Segment Display"
+        data={{ type: "chip", component: sevenSegmentDisplayChip }}
+      >
+        Seven-Segment Display
+      </Draggable>
       <Separator />
       <span className="font-thin text-gray-500 dark:text-gray-50">
         Built-in Tristate Logic Chips
@@ -77,7 +84,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
       <Draggable id="NOT" data={{ type: "chip", component: notGateChip }}>
         NOT
       </Draggable>
-      {builtinCircuits.slice(4).map((chip) => (
+      {builtinCircuits.slice(5).map((chip) => (
         <Draggable
           id={chip.name}
           key={chip.name}

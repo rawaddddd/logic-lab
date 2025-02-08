@@ -1,6 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { Bit } from "@/Simulation";
 import { HslColor } from "colord";
+import { ReactNode } from "react";
 
 export type InputNodeData = {
   name: string;
@@ -17,6 +18,7 @@ export type ChipNodeData = {
   outputs: Bit[];
   inputNames: (string | undefined)[];
   outputNames: (string | undefined)[];
+  render?: (input: Bit[]) => ReactNode;
   id: number; // compIO index in parent circuit's components array
 };
 

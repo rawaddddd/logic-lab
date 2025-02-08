@@ -1,4 +1,4 @@
-import { Circuit } from "./Simulation";
+import { Bit, Circuit } from "./Simulation";
 import { CustomNodes } from "./components/nodes/Nodes";
 import WireEdge from "./components/nodes/WireEdge";
 
@@ -25,6 +25,7 @@ export function circuitToFlow(circuit: Circuit): {
         outputs: component.outputs,
         inputNames: component.component.inputNames(),
         outputNames: component.component.outputNames(),
+        render: component.component.render?.bind(component.component),
         id: component.id,
       },
     });

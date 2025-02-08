@@ -1,5 +1,6 @@
 import clone from "clone";
 import { HslColor } from "colord";
+import { ReactNode } from "react";
 
 export type Bit = boolean | undefined;
 
@@ -16,6 +17,7 @@ export interface Component {
   inputNames: () => (string | undefined)[];
   outputNames: () => (string | undefined)[];
   update: (input: Bit[]) => Bit[];
+  render?: (input: Bit[]) => ReactNode;
 }
 
 type ExtraProperties = {
@@ -124,6 +126,21 @@ export class Circuit implements Component {
 
   public outputNames() {
     return this.outputPins.map((outputPin) => outputPin.extraProperties.name);
+  }
+
+  public render(_input: Bit[]) {
+    const componentsDisplays = this.components
+      .filter((component) => component.component.render !== undefined)
+      .map((component) => {
+        return component.component.render!(component.inputs);
+      })
+      .filter((render) => render !== undefined);
+
+    if (componentsDisplays.length === 0) return undefined;
+
+    return (
+      <div className="flex flex-row justify-center">{componentsDisplays}</div>
+    );
   }
 
   public reconstructInputIds() {
@@ -781,7 +798,47 @@ export const pullDownResistorChip = {
   update: pullDownResistor,
 };
 
+const SEGMENTS = [
+  "m 70,0 8,8 -8,8 H 18 L 10,8 18,0 Z", // A
+  "m 72,18 8,-8 8,8 v 52 l -8,8 -8,-8 z", // B
+  "m 72,90 8,-8 8,8 v 52 l -8,8 -8,-8 z", // C
+  "m 70,144 8,8 -8,8 H 18 L 10,152 18,144 Z", // D
+  "m 0,90 8,-8 8,8 v 52 l -8,8 -8,-8 z", // E
+  "m 0,18 8,-8 8,8 V 70 L 8,78 0,70 Z", // F
+  "m 70,72 8,8 -8,8 H 18 L 10,80 18,72 Z", // G
+];
+
+export const sevenSegmentDisplayChip = {
+  name: "Seven-Segment Display",
+  color: { h: 0, s: 0, l: 50 },
+  numInputs: () => 7,
+  numOutputs: () => 0,
+  inputNames: () => ["A", "B", "C", "D", "E", "F", "G"],
+  outputNames: () => [],
+  update: () => [],
+  render: (input: Bit[]) => {
+    // return JSON.stringify(input);
+    return (
+      <svg
+        width="88px"
+        height="160px"
+        viewBox="0 0 88 160"
+        className="p-1 bg-black"
+      >
+        {SEGMENTS.map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            className={input[i] === true ? "fill-red-500" : "fill-red-500/25"}
+          />
+        ))}
+      </svg>
+    );
+  },
+};
+
 export const builtinCircuits: Component[] = [
+  sevenSegmentDisplayChip,
   pullUpResistorChip,
   pullDownResistorChip,
   tristateBufferChip,

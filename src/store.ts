@@ -146,6 +146,12 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         (b.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER)
     );
     get().circuit.reconstructOutputIds();
+    get().circuit.components.sort(
+      (a, b) =>
+        (a.extraProperties.position?.x ?? Number.MAX_SAFE_INTEGER) -
+        (b.extraProperties.position?.x ?? Number.MAX_SAFE_INTEGER)
+    );
+    get().circuit.reconstructComponentIds();
 
     const circuit = new Circuit("Circuit", 0, 0, []);
     get().circuit.name = name;
@@ -213,6 +219,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           outputs: compIO.outputs,
           inputNames: compIO.component.inputNames(),
           outputNames: compIO.component.outputNames(),
+          render: compIO.component.render?.bind(compIO.component),
           id,
         },
       };
