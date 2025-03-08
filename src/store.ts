@@ -37,7 +37,7 @@ export interface SimulationStore {
   setCircuit: (newCircuit: Circuit & { id?: ID }) => void;
   updateCircuit: (input: Bit[]) => void;
   saveChip: (name: string, color: HslColor) => void;
-  customChips: WithID<Circuit>[];
+  customChips: { chip: WithID<Circuit>; disabled: boolean }[];
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   save: () => void;
   open: (file: File) => void;
@@ -174,11 +174,11 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       const circuit = get().circuit as WithID<Circuit>;
       // replace in sidebar sub-chip menu
       set((state) => ({
-        customChips: state.customChips.map((chip) => {
+        customChips: state.customChips.map(({ chip, disabled }) => {
           if (chip.id === circuit.id) {
-            return circuit as WithID<Circuit>;
+            return { chip: circuit as WithID<Circuit>, disabled };
           }
-          return chip;
+          return { chip, disabled };
         }),
       }));
 
@@ -187,7 +187,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         get().circuitManager.circuitDependencyMap.get(circuit.id)?.keys()
       );
       // console.log(circuitUsagesIDs);
-      get().customChips.forEach((chip) => {
+      get().customChips.forEach(({ chip }) => {
         if (!circuitUsagesIDs.has(chip.id)) return;
         for (const [index, subChip] of chip.components.entries()) {
           // console.log(subChip);
@@ -210,13 +210,15 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       set((state) => ({
         customChips: [
           ...state.customChips,
-          get().circuitManager.createCircuit(get().circuit),
+          {
+            chip: get().circuitManager.createCircuit(get().circuit),
+            disabled: false,
+          },
         ],
       }));
     }
 
-    set({ circuit: new Circuit("Circuit", 0, 0, []) });
-    get().reloadDiagram();
+    get().newChip();
   },
   customChips: [],
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => {
@@ -298,7 +300,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
   },
   save: () => {
-    const json = serialise(get().customChips);
+    const json = serialise(get().customChips.map((chip) => chip.chip));
     const blob = new Blob([json], { type: "application/json" });
     const href = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -319,7 +321,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           );
           set({
             circuitManager: deserialisedCircuitManager,
-            customChips: deserialisedCircuitManager.circuits,
+            customChips: deserialisedCircuitManager.circuits.map((chip) => ({
+              chip,
+              disabled: false,
+            })),
           });
         } catch (err) {
           console.warn("Invalid JSON file.");
@@ -334,13 +339,26 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   newChip: () => {
     set({
       circuit: new Circuit("Circuit", 0, 0, []),
+      customChips: get().customChips.map((chip) => ({
+        ...chip,
+        disabled: false,
+      })),
     });
     get().reloadDiagram();
   },
-  editChip: (chip: WithID<Circuit>) => {
+  editChip: (editedChip: WithID<Circuit>) => {
     // TODO add a confirmation menu if the current circuit is not saved
-    console.log(chip);
-    set({ circuit: clone(chip) });
+    console.log(editedChip);
+    set({
+      circuit: clone(editedChip),
+      customChips: get().customChips.map((chip) => ({
+        ...chip,
+        disabled: get().circuitManager.wouldCreateCycle(
+          chip.chip.id,
+          editedChip.id
+        ),
+      })),
+    });
     get().reloadDiagram();
   },
   chipDependencyMap: new Map(),

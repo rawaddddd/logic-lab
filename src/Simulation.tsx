@@ -712,6 +712,13 @@ export class CircuitManager {
     return dfs(chipID);
   }
 
+  public wouldCreateCycle(chipID: ID, parentID: ID) {
+    this.unsafeAddChipToCircuit(chipID, parentID);
+    const result = this.isInCycle(chipID, parentID);
+    this.removeChipFromCircuit(chipID, parentID);
+    return result;
+  }
+
   unsafeAddChipToCircuit(chipID: ID, parentID: ID) {
     const chipUsages = this.circuitDependencyMap.get(chipID)!;
     chipUsages.set(parentID, (chipUsages.get(parentID) ?? 0) + 1);
@@ -729,7 +736,6 @@ export class CircuitManager {
   public removeChipFromCircuit(chipID: ID, parentID: ID) {
     const chipUsages = this.circuitDependencyMap.get(chipID)!;
     const parentUsages = chipUsages.get(parentID);
-    console.log(chipUsages);
     if (parentUsages === undefined) return;
 
     if (parentUsages <= 1) {

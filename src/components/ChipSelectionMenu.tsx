@@ -105,7 +105,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
           <span className="font-thin text-gray-500 dark:text-gray-50">
             Custom Chips
           </span>
-          {customChips.map((chip) => (
+          {customChips.map(({ chip, disabled }) => (
             <div key={chip.name} className="flex flex-row space-x-2">
               <Draggable
                 id={chip.name}
@@ -113,6 +113,7 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
                   type: "chip",
                   component: chip,
                 }}
+                disabled={disabled}
               >
                 {chip.name}
               </Draggable>
