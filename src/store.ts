@@ -43,6 +43,7 @@ export interface SimulationStore {
   open: (file: File) => void;
   newChip: () => void;
   editChip: (chip: WithID<Circuit>) => void;
+  deleteChip: (chip: WithID<Circuit>) => void;
   chipViewingStack: { id: ID; chip: WithID<Circuit> }[];
   clearChipViewingStack: () => void;
   popChipViewingStack: (index: number) => void;
@@ -348,7 +349,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
   },
   editChip: (editedChip: WithID<Circuit>) => {
     // TODO add a confirmation menu if the current circuit is not saved
-    console.log(editedChip);
+    // console.log(editedChip);
     set({
       circuit: clone(editedChip),
       customChips: get().customChips.map((chip) => ({
@@ -360,6 +361,27 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       })),
     });
     get().reloadDiagram();
+  },
+  deleteChip: (deletedChip: WithID<Circuit>) => {
+    if (get().circuit.id === deletedChip.id) {
+      console.warn("Cannot delete chip while editing it");
+      return;
+    }
+
+    if (
+      get().circuitManager.circuitDependencyMap.get(deletedChip.id)?.size !== 0
+    ) {
+      console.warn("Cannot delete a chip while it is used in other chips");
+      return;
+    }
+
+    get().circuitManager.deleteCircuit(deletedChip.id);
+
+    set({
+      customChips: get().customChips.filter(
+        ({ chip }) => chip.id !== deletedChip.id
+      ),
+    });
   },
   chipDependencyMap: new Map(),
   chipViewingStack: [],

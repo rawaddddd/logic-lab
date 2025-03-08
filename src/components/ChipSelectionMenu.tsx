@@ -14,12 +14,17 @@ import { Separator } from "./ui/separator";
 import { useSimulationStore } from "@/store";
 import React from "react";
 import { Button } from "./ui/button";
-import { IconEdit } from "@tabler/icons-react";
+import { IconEdit, IconTrash } from "@tabler/icons-react";
 
 const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   const [numInputHandles, setNumInputHandles] = useState(2);
+  const circuitDependencyMap = useSimulationStore(
+    (state) => state.circuitManager.circuitDependencyMap
+  );
+  const circuitID = useSimulationStore((state) => state.circuit.id);
   const customChips = useSimulationStore((state) => state.customChips);
   const editChip = useSimulationStore((state) => state.editChip);
+  const deleteChip = useSimulationStore((state) => state.deleteChip);
 
   return (
     <div ref={ref} className="p-4 flex flex-col items-center space-y-2">
@@ -125,6 +130,19 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
                 }}
               >
                 <IconEdit className="dark:text-gray-50" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  deleteChip(chip);
+                }}
+                disabled={
+                  circuitID === chip.id ||
+                  circuitDependencyMap.get(chip.id)?.size !== 0
+                }
+              >
+                <IconTrash className="dark:text-gray-50" />
               </Button>
             </div>
           ))}
