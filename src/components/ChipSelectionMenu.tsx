@@ -13,8 +13,13 @@ import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { useSimulationStore } from "@/store";
 import React from "react";
-import { Button } from "./ui/button";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "./ui/context-menu";
 
 const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   const [numInputHandles, setNumInputHandles] = useState(2);
@@ -112,38 +117,44 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
           </span>
           {customChips.map(({ chip, disabled }) => (
             <div key={chip.name} className="flex flex-row space-x-2">
-              <Draggable
-                id={chip.name}
-                data={{
-                  type: "chip",
-                  component: chip,
-                }}
-                disabled={disabled}
-              >
-                {chip.name}
-              </Draggable>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  editChip(chip);
-                }}
-              >
-                <IconEdit className="dark:text-gray-50" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  deleteChip(chip);
-                }}
-                disabled={
-                  circuitID === chip.id ||
-                  circuitDependencyMap.get(chip.id)?.size !== 0
-                }
-              >
-                <IconTrash className="dark:text-gray-50" />
-              </Button>
+              <ContextMenu>
+                <ContextMenuTrigger>
+                  <Draggable
+                    id={chip.name}
+                    data={{
+                      type: "chip",
+                      component: chip,
+                    }}
+                    disabled={disabled}
+                  >
+                    {chip.name}
+                  </Draggable>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onClick={() => {
+                      editChip(chip);
+                    }}
+                    className="flex flex-row gap-2"
+                  >
+                    <IconEdit className="w-4 h-4" />
+                    Edit
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => {
+                      deleteChip(chip);
+                    }}
+                    disabled={
+                      circuitID === chip.id ||
+                      circuitDependencyMap.get(chip.id)?.size !== 0
+                    }
+                    className="flex flex-row gap-2 text-red-500 focus:text-gray-50 focus:bg-red-600/75 dark:focus:text-gray-50 dark:focus:bg-red-600/75"
+                  >
+                    <IconTrash className="w-4 h-4" />
+                    Delete
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             </div>
           ))}
         </>
