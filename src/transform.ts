@@ -1,4 +1,4 @@
-import { Bit, Circuit } from "./Simulation";
+import { Circuit } from "./Simulation";
 import { CustomNodes } from "./components/nodes/Nodes";
 import WireEdge from "./components/nodes/WireEdge";
 
@@ -25,6 +25,8 @@ export function circuitToFlow(circuit: Circuit): {
         outputs: component.outputs,
         inputNames: component.component.inputNames(),
         outputNames: component.component.outputNames(),
+        inputIDs: component.component.inputIDs(),
+        outputIDs: component.component.outputIDs(),
         render: component.component.render?.bind(component.component),
         id: component.id,
       },
@@ -75,11 +77,11 @@ export function circuitToFlow(circuit: Circuit): {
     component.connections.forEach((connections, outputIndex) => {
       connections.forEach((targetIndex) => {
         edges.push({
-          id: `chip-${component.id}-${outputIndex}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+          id: `chip-${component.id}-${outputIndex}->chip-${targetIndex.componentId}-${targetIndex.inputId}`,
           source: `chip-${component.id}`,
           sourceHandle: `output-${outputIndex}`,
           target: `chip-${targetIndex.componentId}`,
-          targetHandle: `input-${targetIndex.inputIndex}`,
+          targetHandle: `input-${targetIndex.inputId}`,
           type: "custom",
           data: { sourceHandleIndex: outputIndex },
         });
@@ -91,11 +93,11 @@ export function circuitToFlow(circuit: Circuit): {
   circuit.inputPins.forEach((inputPin) => {
     inputPin.connections.forEach((targetIndex) => {
       edges.push({
-        id: `input-${inputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+        id: `input-${inputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputId}`,
         source: `input-${inputPin.id}`,
         sourceHandle: undefined,
         target: `chip-${targetIndex.componentId}`,
-        targetHandle: `input-${targetIndex.inputIndex}`,
+        targetHandle: `input-${targetIndex.inputId}`,
         type: "custom",
         data: { sourceHandleIndex: 0 },
       });
@@ -106,9 +108,9 @@ export function circuitToFlow(circuit: Circuit): {
   circuit.outputPins.forEach((outputPin) => {
     outputPin.connections.forEach((targetIndex) => {
       edges.push({
-        id: `output-${outputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputIndex}`,
+        id: `output-${outputPin.id}->chip-${targetIndex.componentId}-${targetIndex.inputId}`,
         source: `chip-${targetIndex.componentId}`,
-        sourceHandle: `output-${targetIndex.inputIndex}`,
+        sourceHandle: `output-${targetIndex.inputId}`,
         target: `output-${outputPin.id}`,
         targetHandle: undefined,
         type: "custom",

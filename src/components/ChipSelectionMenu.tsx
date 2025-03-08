@@ -13,10 +13,13 @@ import { Label } from "./ui/label";
 import { Separator } from "./ui/separator";
 import { useSimulationStore } from "@/store";
 import React from "react";
+import { Button } from "./ui/button";
+import { IconEdit } from "@tabler/icons-react";
 
 const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
   const [numInputHandles, setNumInputHandles] = useState(2);
   const customChips = useSimulationStore((state) => state.customChips);
+  const editChip = useSimulationStore((state) => state.editChip);
 
   return (
     <div ref={ref} className="p-4 flex flex-col items-center space-y-2">
@@ -103,16 +106,26 @@ const ChipSelectionMenu = React.forwardRef<HTMLDivElement, {}>(({}, ref) => {
             Custom Chips
           </span>
           {customChips.map((chip) => (
-            <Draggable
-              id={chip.name}
-              key={chip.name}
-              data={{
-                type: "chip",
-                component: chip,
-              }}
-            >
-              {chip.name}
-            </Draggable>
+            <div key={chip.name} className="flex flex-row space-x-2">
+              <Draggable
+                id={chip.name}
+                data={{
+                  type: "chip",
+                  component: chip,
+                }}
+              >
+                {chip.name}
+              </Draggable>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  editChip(chip);
+                }}
+              >
+                <IconEdit className="dark:text-gray-50" />
+              </Button>
+            </div>
           ))}
         </>
       )}

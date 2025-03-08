@@ -14,6 +14,8 @@ function ChipNode({
     outputs,
     inputNames,
     outputNames,
+    inputIDs,
+    outputIDs,
     render,
   },
 }: NodeProps<ChipNode>) {
@@ -34,7 +36,7 @@ function ChipNode({
             <Tooltip>
               <TooltipTrigger asChild>
                 <SingleConnectionHandle
-                  id={`input-${i}`}
+                  id={`input-${inputIDs[i]}`}
                   type="target"
                   position={Position.Left}
                   className={cn(
@@ -68,7 +70,7 @@ function ChipNode({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Handle
-                  id={`output-${i}`}
+                  id={`output-${outputIDs[i]}`}
                   type="source"
                   position={Position.Right}
                   className={cn(

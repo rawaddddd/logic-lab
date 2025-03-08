@@ -19,6 +19,7 @@ import { BackgroundVariant } from "@xyflow/react";
 function AppMenuBar() {
   const save = useSimulationStore((state) => state.save);
   const open = useSimulationStore((state) => state.open);
+  const newChip = useSimulationStore((state) => state.newChip);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +46,8 @@ function AppMenuBar() {
         <MenubarMenu>
           <MenubarTrigger>File</MenubarTrigger>
           <MenubarContent>
+            <MenubarItem onSelect={newChip}>New Circuit</MenubarItem>
+            <MenubarSeparator />
             <MenubarItem
               onSelect={() => {
                 fileInputRef.current?.click();

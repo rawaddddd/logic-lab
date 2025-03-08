@@ -49,8 +49,9 @@ function randomColor() {
 }
 
 const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
-  const createChip = useSimulationStore((state) => state.createChip);
-  const [name, setName] = useState("");
+  const saveChip = useSimulationStore((state) => state.saveChip);
+  const circuitName = useSimulationStore((state) => state.circuit.name);
+  const [name, setName] = useState(circuitName);
   const [color, setColor] = useState<HslColor>(randomColor());
   const [hexColor, setHexColor] = useState("");
   const hexInputRef = useRef<HTMLInputElement | null>(null);
@@ -70,7 +71,7 @@ const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
       <div>
         <DialogTrigger asChild>
           <Button ref={ref} className="h-full text-md shadow-md">
-            Create chip
+            Save chip
           </Button>
         </DialogTrigger>
       </div>
@@ -78,15 +79,13 @@ const ChipCreationMenu = React.forwardRef<HTMLButtonElement, {}>(({}, ref) => {
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            createChip(name, color);
+            saveChip(name, color);
             setOpen(false);
           }}
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle className="dark:text-gray-50">
-                Create chip
-              </DialogTitle>
+              <DialogTitle className="dark:text-gray-50">Save chip</DialogTitle>
               <DialogDescription>
                 Convert the current circuit into a reusable chip.
               </DialogDescription>

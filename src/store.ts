@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import { Bit, Circuit, CompIO, ID, nandGateChip } from "./Simulation";
+import {
+  Bit,
+  Circuit,
+  CircuitManager,
+  CompIO,
+  ID,
+  nandGateChip,
+  WithID,
+} from "./Simulation";
 import {
   addEdge,
   applyEdgeChanges,
@@ -24,18 +32,21 @@ import clone from "clone";
 import { deserialise, serialise } from "./serialise";
 import { HslColor } from "colord";
 export interface SimulationStore {
-  circuit: Circuit;
-  setCircuit: (newCircuit: Circuit) => void;
+  circuitManager: CircuitManager;
+  circuit: Circuit & { id?: ID }; // has an id only when it is a circuit being edited, TODO maybe make this more type-safe somehow
+  setCircuit: (newCircuit: Circuit & { id?: ID }) => void;
   updateCircuit: (input: Bit[]) => void;
-  createChip: (name: string, color: HslColor) => void;
-  customChips: Circuit[];
+  saveChip: (name: string, color: HslColor) => void;
+  customChips: WithID<Circuit>[];
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   save: () => void;
   open: (file: File) => void;
-  chipViewingStack: { id: ID; chip: Circuit }[];
+  newChip: () => void;
+  editChip: (chip: WithID<Circuit>) => void;
+  chipViewingStack: { id: ID; chip: WithID<Circuit> }[];
   clearChipViewingStack: () => void;
   popChipViewingStack: (index: number) => void;
-  getCurrentlyViewedChip: () => Circuit;
+  getCurrentlyViewedChip: () => Circuit & { id?: ID };
   viewChip: (id: ID) => void;
   nodes: CustomNodes[];
   edges: WireEdge[];
@@ -51,7 +62,7 @@ export interface SimulationStore {
 
 const nand_a = new CompIO(nandGateChip); // c_id: 0
 
-nand_a.add_connection(0, { componentId: 0, inputIndex: 1 }); // nand_a -> nand_a
+nand_a.add_connection(0, { componentId: 0, inputId: 1 }); // nand_a -> nand_a
 
 const initialCircuit = new Circuit("nand short", 1, 1, [nand_a]);
 initialCircuit.connectInputPin(0, 0, 0); // input 0 -> nand_a
@@ -61,8 +72,10 @@ const { nodes: initialNodes, edges: initialEdges } =
   circuitToFlow(initialCircuit);
 
 export const useSimulationStore = create<SimulationStore>((set, get) => ({
+  circuitManager: new CircuitManager(),
   circuit: initialCircuit,
-  setCircuit: (newCircuit: Circuit) => set({ circuit: newCircuit }),
+  setCircuit: (newCircuit: Circuit & { id?: ID }) =>
+    set({ circuit: newCircuit }),
   updateCircuit: (input: Bit[]) => {
     get().circuit.update(input);
     set({
@@ -133,7 +146,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       }),
     });
   },
-  createChip: (name: string, color: HslColor) => {
+  saveChip: (name: string, color: HslColor) => {
     get().circuit.inputPins.sort(
       (a, b) =>
         (a.extraProperties.position?.y ?? Number.MAX_SAFE_INTEGER) -
@@ -153,13 +166,56 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     );
     get().circuit.reconstructComponentIds();
 
-    const circuit = new Circuit("Circuit", 0, 0, []);
     get().circuit.name = name;
     get().circuit.color = color;
-    set((state) => ({
-      customChips: [...state.customChips, get().circuit],
-    }));
-    set({ circuit });
+
+    if (get().circuit.id !== undefined) {
+      // editing chip
+      const circuit = get().circuit as WithID<Circuit>;
+      // replace in sidebar sub-chip menu
+      set((state) => ({
+        customChips: state.customChips.map((chip) => {
+          if (chip.id === circuit.id) {
+            return circuit as WithID<Circuit>;
+          }
+          return chip;
+        }),
+      }));
+
+      // replace in all circuits that use it
+      const circuitUsagesIDs = new Set(
+        get().circuitManager.circuitDependencyMap.get(circuit.id)?.keys()
+      );
+      // console.log(circuitUsagesIDs);
+      get().customChips.forEach((chip) => {
+        if (!circuitUsagesIDs.has(chip.id)) return;
+        for (const [index, subChip] of chip.components.entries()) {
+          // console.log(subChip);
+          if (
+            subChip.component instanceof Circuit &&
+            (subChip.component as WithID<Circuit>).id === circuit.id
+          ) {
+            // subChip.component = clone(circuit);
+            const newSubChip = new CompIO(clone(circuit)) as WithID<CompIO>;
+            newSubChip.id = subChip.id;
+            newSubChip.connections = subChip.connections;
+            newSubChip.extraProperties = subChip.extraProperties;
+            chip.components[index] = newSubChip;
+          }
+        }
+        // TODO clean up chip here to remove connections to deleted IO pins or chips
+      });
+    } else {
+      // creating new chip
+      set((state) => ({
+        customChips: [
+          ...state.customChips,
+          get().circuitManager.createCircuit(get().circuit),
+        ],
+      }));
+    }
+
+    set({ circuit: new Circuit("Circuit", 0, 0, []) });
     get().reloadDiagram();
   },
   customChips: [],
@@ -203,6 +259,19 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       };
       set((state) => ({ nodes: [...state.nodes, newNode] }));
     } else if (dragData.type === "chip") {
+      if (dragData.component instanceof Circuit) {
+        const circuit = dragData.component as WithID<Circuit>;
+        // console.log("Custom chip dropped");
+        const currentCircuitID = get().circuit.id;
+        if (
+          currentCircuitID !== undefined &&
+          !get().circuitManager.addChipToCircuit(circuit.id, currentCircuitID)
+        ) {
+          console.warn("Cyclic dependency");
+          return;
+        }
+      }
+
       const compIO = new CompIO(clone(dragData.component));
       compIO.extraProperties.position = position;
       const id = get().circuit.addComponent(compIO);
@@ -219,6 +288,8 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           outputs: compIO.outputs,
           inputNames: compIO.component.inputNames(),
           outputNames: compIO.component.outputNames(),
+          inputIDs: compIO.component.inputIDs(),
+          outputIDs: compIO.component.outputIDs(),
           render: compIO.component.render?.bind(compIO.component),
           id,
         },
@@ -243,8 +314,13 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
 
       reader.onload = (e) => {
         try {
-          const deserialisedData = deserialise(e.target!.result as string);
-          set({ customChips: deserialisedData });
+          const deserialisedCircuitManager = deserialise(
+            e.target!.result as string
+          );
+          set({
+            circuitManager: deserialisedCircuitManager,
+            customChips: deserialisedCircuitManager.circuits,
+          });
         } catch (err) {
           console.warn("Invalid JSON file.");
         }
@@ -255,6 +331,19 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       console.warn("Not a JSON file");
     }
   },
+  newChip: () => {
+    set({
+      circuit: new Circuit("Circuit", 0, 0, []),
+    });
+    get().reloadDiagram();
+  },
+  editChip: (chip: WithID<Circuit>) => {
+    // TODO add a confirmation menu if the current circuit is not saved
+    console.log(chip);
+    set({ circuit: clone(chip) });
+    get().reloadDiagram();
+  },
+  chipDependencyMap: new Map(),
   chipViewingStack: [],
   clearChipViewingStack: () => {
     set({ chipViewingStack: [] });
@@ -289,7 +378,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     }
 
     set((state) => ({
-      chipViewingStack: state.chipViewingStack.concat({ id, chip: circuit }),
+      chipViewingStack: state.chipViewingStack.concat({
+        id,
+        chip: circuit as WithID<Circuit>,
+      }),
     }));
     get().reloadDiagram();
   },
@@ -342,6 +434,14 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         } else if (isOutputNode(node)) {
           get().circuit.removeOutputPin(node.data.id);
         } else if (isChipNode(node)) {
+          const component = get().circuit.getComponent(node.data.id)?.component;
+          const circuitID = get().circuit.id;
+          if (component instanceof Circuit && circuitID !== undefined) {
+            get().circuitManager.removeChipFromCircuit(
+              (component as WithID<Circuit>).id,
+              circuitID
+            );
+          }
           get().circuit.removeComponent(node.data.id);
         }
       }

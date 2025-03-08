@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Fragment } from "react/jsx-runtime";
 
 function SubChipViewInspector() {
+  const currentCircuitName = useSimulationStore((state) => state.circuit.name);
   const chipViewingStack = useSimulationStore(
     (state) => state.chipViewingStack
   );
@@ -17,7 +18,7 @@ function SubChipViewInspector() {
   return (
     <>
       <Button variant="link" onClick={() => clearChipViewingStack()}>
-        Circuit
+        {currentCircuitName}
       </Button>
       {chipViewingStack.map(({ id, chip }, index) => (
         <Fragment key={index}>

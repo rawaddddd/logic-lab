@@ -2,6 +2,7 @@ import { HslColor } from "colord";
 import {
   andGateChip,
   Circuit,
+  CircuitManager,
   CompIO,
   Component,
   ID,
@@ -14,6 +15,7 @@ import {
   pullUpResistorChip,
   sevenSegmentDisplayChip,
   tristateBufferChip,
+  WithID,
 } from "./Simulation";
 import clone from "clone";
 
@@ -69,7 +71,7 @@ const BUILTIN_CHIPS: { [key: string]: Component } = {
   "Pull-Down Resistor": pullDownResistorChip,
 };
 
-export function deserialise(json: string): Circuit[] {
+export function deserialise(json: string): CircuitManager {
   const parsed: SerialisedCircuit[] = JSON.parse(json);
   const circuitMap = new Map<string, Circuit>();
   const stack = new Set<string>(); // For cycle detection
@@ -136,22 +138,22 @@ export function deserialise(json: string): Circuit[] {
     // Restore connections
     data.inputPins.forEach(({ id, connections }) => {
       const newId = inputIdMap.get(id)!;
-      connections.forEach(({ componentId, inputIndex }) => {
+      connections.forEach(({ componentId, inputId }) => {
         circuit.connectInputPin(
           newId,
           componentIdMap.get(componentId)!,
-          inputIndex
+          inputId
         );
       });
     });
 
     data.outputPins.forEach(({ id, connections }) => {
       const newId = outputIdMap.get(id)!;
-      connections.forEach(({ componentId, inputIndex }) => {
+      connections.forEach(({ componentId, inputId }) => {
         circuit.connectOutputPin(
           newId,
           componentIdMap.get(componentId)!,
-          inputIndex
+          inputId
         );
       });
     });
@@ -159,12 +161,12 @@ export function deserialise(json: string): Circuit[] {
     data.components.forEach(({ id, connections }) => {
       const newId = componentIdMap.get(id)!;
       connections.forEach((targets, outputIndex) => {
-        targets.forEach(({ componentId, inputIndex }) => {
+        targets.forEach(({ componentId, inputId }) => {
           circuit.connectChip(
             newId,
             outputIndex,
             componentIdMap.get(componentId)!,
-            inputIndex
+            inputId
           );
         });
       });
@@ -174,5 +176,17 @@ export function deserialise(json: string): Circuit[] {
     return circuit;
   }
 
-  return parsed.map(buildCircuit);
+  const circuitManager = new CircuitManager();
+  const circuits = parsed.map((circuit) =>
+    circuitManager.createCircuit(buildCircuit(circuit))
+  );
+  for (const circuit of circuits) {
+    for (const component of circuit.components) {
+      if (component.component instanceof Circuit) {
+        const componentWithID = component.component as WithID<Circuit>;
+        circuitManager.addChipToCircuit(componentWithID.id, circuit.id);
+      }
+    }
+  }
+  return circuitManager;
 }
