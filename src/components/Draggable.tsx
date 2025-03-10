@@ -20,7 +20,7 @@ interface ComponentData {
   component: Component;
 }
 
-type DraggableProps = ButtonProps & {
+type DraggableProps = Omit<ButtonProps, "id"> & {
   id: string | number;
   data: InputData | OutputData | ComponentData;
   asChild?: boolean;
@@ -28,12 +28,22 @@ type DraggableProps = ButtonProps & {
 
 export const Draggable = React.forwardRef<HTMLButtonElement, DraggableProps>(
   ({ id, data, className, variant = "secondary", asChild, ...rest }, ref) => {
+    const Comp = asChild ? Slot : Button;
+
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
       id,
-      data,
+      data: {
+        ...data,
+        dragOverlay: (
+          <Comp
+            variant={variant}
+            className={cn(className, "pointer-events-none")}
+          >
+            {rest.children}
+          </Comp>
+        ),
+      },
     });
-
-    const Comp = asChild ? Slot : Button;
 
     return (
       <Comp

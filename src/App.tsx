@@ -15,15 +15,21 @@ import { useCopyPaste } from "./hooks/useCopyPaste";
 import { useState, MouseEvent } from "react";
 import { Droppable } from "./components/Droppable";
 import { DragData, DropData, sidebarDnd } from "./sidebarDnd";
-import { DragEndEvent } from "./typedDnd";
+import { DragEndEvent, TypesafeActive } from "./typedDnd";
 import { CustomNodes } from "./components/nodes/Nodes";
 import ChipSelectionMenu from "./components/ChipSelectionMenu";
 import SimulationControls from "./components/SimulationControls";
 import ChipCreationMenu from "./components/ChipCreationMenu";
-import { DragOverlay } from "@dnd-kit/core";
-import { Button } from "./components/ui/button";
+import {
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import AppMenuBar from "./components/AppMenuBar";
 import SubChipViewInspector from "./components/SubChipViewInspector";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 const { DndContext } = sidebarDnd;
 
@@ -100,7 +106,7 @@ function App() {
   const [currentNodeId, setCurrentNodeId] = useState<string | undefined>(
     undefined
   );
-  const [activeId, setActiveId] = useState<string | number | null>(null);
+  const [active, setActive] = useState<TypesafeActive<DragData> | null>(null);
 
   const backgroundVariant = useSimulationStore(
     (state) => state.backgroundVariant
@@ -108,11 +114,17 @@ function App() {
 
   return (
     <DndContext
-      onDragStart={(event) => {
-        setActiveId(event.active.id);
+      sensors={useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+          coordinateGetter: sortableKeyboardCoordinates,
+        })
+      )}
+      onDragStart={({ active }) => {
+        setActive(active);
       }}
       onDragEnd={(event) => {
-        setActiveId(null);
+        setActive(null);
         onDragEnd(event);
       }}
     >
@@ -235,11 +247,7 @@ function App() {
         }}
         className="cursor-grabbing shadow-lg"
       >
-        {activeId !== null ? (
-          <Button variant="secondary" className="pointer-events-none">
-            {activeId}
-          </Button>
-        ) : null}
+        {active?.data.current?.dragOverlay}
       </DragOverlay>
     </DndContext>
   );

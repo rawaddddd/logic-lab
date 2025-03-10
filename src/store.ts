@@ -38,6 +38,9 @@ export interface SimulationStore {
   updateCircuit: (input: Bit[]) => void;
   saveChip: (name: string, color: HslColor) => void;
   customChips: { chip: WithID<Circuit>; disabled: boolean }[];
+  setCustomChips: (
+    newCustomChips: { chip: WithID<Circuit>; disabled: boolean }[]
+  ) => void;
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => void;
   save: () => void;
   open: (file: File) => void;
@@ -222,6 +225,11 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
     get().newChip();
   },
   customChips: [],
+  setCustomChips: (
+    newCustomChips: { chip: WithID<Circuit>; disabled: boolean }[]
+  ) => {
+    set({ customChips: newCustomChips });
+  },
   onDropChip: (dragData: DragData, position: { x: number; y: number }) => {
     if (dragData.type === "input") {
       const id = get().circuit.addInputPin({

@@ -2,7 +2,7 @@ import {
   Active,
   CancelDrop,
   Collision,
-  CollisionDetection,
+  CollisionDetection as OriginalCollisionDetection,
   DndContext as OriginalDndContext,
   DndContextProps,
   DragCancelEvent as OriginalDragCancelEvent,
@@ -18,11 +18,15 @@ import {
   useDroppable as baseUseDroppable,
   UseDroppableArguments,
 } from "@dnd-kit/core";
+import {
+  useSortable as baseUseSortable,
+  UseSortableArguments,
+} from "@dnd-kit/sortable";
 
-type TypesafeActive<DragData> = Omit<Active, "data"> & {
+export type TypesafeActive<DragData> = Omit<Active, "data"> & {
   data: React.MutableRefObject<DragData | undefined>;
 };
-type TypesafeOver<DropData> = Omit<Over, "data"> & {
+export type TypesafeOver<DropData> = Omit<Over, "data"> & {
   data: React.MutableRefObject<DropData | undefined>;
 };
 
@@ -65,14 +69,25 @@ export type DragCancelEvent<DragData, DropData> = Omit<
   over: TypesafeOver<DropData> | null;
 };
 
-const typedDnd = <DragData, DropData>() => {
-  type TypesafeActive = Omit<Active, "data"> & {
-    data: React.MutableRefObject<DragData | undefined>;
-  };
-  type TypesafeOver = Omit<Over, "data"> & {
+export type CollisionDetection<DragData, DropData> = (
+  e: Omit<
+    Parameters<OriginalCollisionDetection>[0],
+    "active" | "droppableContainers"
+  > & {
+    active: TypesafeActive<DragData>;
+    droppableContainers: Array<
+      Omit<OriginalDroppableContainer, "data"> & {
+        data: React.MutableRefObject<DropData | undefined>;
+      }
+    >;
+  }
+) => Array<
+  Omit<Collision, "data"> & {
     data: React.MutableRefObject<DropData | undefined>;
-  };
+  }
+>;
 
+const typedDnd = <DragData, DropData, SortableData = {}>() => {
   type ContextProps = Omit<
     DndContextProps,
     | "onDragStart"
@@ -90,21 +105,11 @@ const typedDnd = <DragData, DropData>() => {
     onDragCancel?: (e: DragCancelEvent<DragData, DropData>) => void;
     cancelDrop?: (
       e: Omit<Parameters<CancelDrop>[0], "active" | "over"> & {
-        active: TypesafeActive;
-        over: TypesafeOver | null;
+        active: TypesafeActive<DragData>;
+        over: TypesafeOver<DropData> | null;
       }
     ) => ReturnType<CancelDrop>;
-    collisionDetection?: (
-      e: Omit<
-        Parameters<CollisionDetection>[0],
-        "active" | "droppableContainers"
-      > & {
-        active: TypesafeActive;
-        droppableContainers: Array<
-          Omit<OriginalDroppableContainer, "data"> & TypesafeOver
-        >;
-      }
-    ) => Array<Omit<Collision, "data"> & TypesafeOver>;
+    collisionDetection?: CollisionDetection<DragData, DropData>;
   };
 
   const DndContext: React.NamedExoticComponent<ContextProps> =
@@ -120,22 +125,30 @@ const typedDnd = <DragData, DropData>() => {
   const useDraggable: (
     args: Omit<UseDraggableArguments, "data"> & { data: DragData }
   ) => Omit<ReturnType<typeof baseUseDraggable>, "active" | "over"> & {
-    active: TypesafeActive | null;
-    over: TypesafeOver | null;
+    active: TypesafeActive<DragData> | null;
+    over: TypesafeOver<DropData> | null;
   } = baseUseDraggable as any;
 
   const useDroppable: (
     args: Omit<UseDroppableArguments, "data"> & { data: DropData }
   ) => Omit<ReturnType<typeof baseUseDroppable>, "active" | "over"> & {
-    active: TypesafeActive | null;
-    over: TypesafeOver | null;
+    active: TypesafeActive<DragData> | null;
+    over: TypesafeOver<DropData> | null;
   } = baseUseDroppable as any;
+
+  const useSortable: (
+    args: Omit<UseSortableArguments, "data"> & { data: SortableData }
+  ) => Omit<ReturnType<typeof baseUseSortable>, "active" | "over"> & {
+    active: TypesafeActive<DragData> | null;
+    over: TypesafeOver<DropData> | null;
+  } = baseUseSortable as any;
 
   return {
     DndContext,
     useDndMonitor,
     useDraggable,
     useDroppable,
+    useSortable,
   };
 };
 
