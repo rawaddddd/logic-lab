@@ -18,6 +18,7 @@ import {
   OnNodesChange,
 } from "@xyflow/react";
 import {
+  ChipNodeData,
   CustomNodes,
   InputNodeData,
   isChipNode,
@@ -302,6 +303,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           inputIDs: compIO.component.inputIDs(),
           outputIDs: compIO.component.outputIDs(),
           render: compIO.component.render?.bind(compIO.component),
+          showRender: compIO.extraProperties.showRender ?? true,
           id,
         },
       };
@@ -450,6 +452,9 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           get().circuit.getOutputPin(node.data.id)!.extraProperties.name = (
             change.item.data as OutputNodeData
           ).name;
+        } else if (isChipNode(node)) {
+          get().circuit.getComponent(node.data.id)!.extraProperties.showRender =
+            (change.item.data as ChipNodeData).showRender;
         }
       } else if (change.type === "position") {
         const node = get().nodes.find((node) => node.id === change.id)!;

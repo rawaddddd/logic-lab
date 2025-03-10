@@ -21,6 +21,7 @@ export type ChipNodeData = {
   inputIDs: ID[];
   outputIDs: ID[];
   render?: (input: Bit[]) => ReactNode;
+  showRender: boolean;
   id: ID; // compIO index in parent circuit's components array
 };
 

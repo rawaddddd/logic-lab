@@ -28,6 +28,7 @@ export function circuitToFlow(circuit: Circuit): {
         inputIDs: component.component.inputIDs(),
         outputIDs: component.component.outputIDs(),
         render: component.component.render?.bind(component.component),
+        showRender: component.extraProperties.showRender ?? true,
         id: component.id,
       },
     });

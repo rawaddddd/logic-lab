@@ -30,6 +30,7 @@ type ExtraProperties = {
     y: number;
   };
   selected?: boolean;
+  showRender?: boolean;
 };
 
 export interface IOPin {
@@ -67,9 +68,9 @@ export type WithID<T> = T extends new (...args: any[]) => infer R
 export class Circuit implements Component {
   name: string;
   color: HslColor;
+
   inputPins: WithID<IOPin>[];
   outputPins: WithID<IOPin>[];
-
   components: WithID<CompIO>[];
 
   inputPinIdMap: Map<ID, number>;
@@ -150,13 +151,17 @@ export class Circuit implements Component {
 
   public render(_input: Bit[]) {
     const componentsDisplays = this.components
-      .filter((component) => component.component.render !== undefined)
+      .filter(
+        (component) =>
+          component.component.render !== undefined &&
+          component.extraProperties.showRender !== false
+      )
       .map((component) => {
         return component.component.render!(component.inputs);
       })
       .filter((render) => render !== undefined);
 
-    if (componentsDisplays.length === 0) return undefined;
+    if (componentsDisplays.length === 0) return null;
 
     return (
       <div className="flex flex-row justify-center">{componentsDisplays}</div>

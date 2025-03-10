@@ -1,12 +1,15 @@
-import { Handle, NodeProps, Position } from "@xyflow/react";
+import { Handle, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import SingleConnectionHandle from "./SingleConnectionHandle";
 import { type ChipNode } from "./Nodes";
 import { memo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { cn } from "@/lib/utils";
 import { colord } from "colord";
+import { Button } from "../ui/button";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 
 function ChipNode({
+  id,
   data: {
     name,
     color: bgColor,
@@ -17,10 +20,15 @@ function ChipNode({
     inputIDs,
     outputIDs,
     render,
+    showRender,
   },
 }: NodeProps<ChipNode>) {
+  const { updateNodeData } = useReactFlow();
+
   const color = colord(bgColor);
   const luminance = color.luminance();
+
+  const renderedComponent = render !== undefined ? render(inputs) : null;
 
   return (
     <div
@@ -62,7 +70,7 @@ function ChipNode({
         )}
       >
         <span>{name}</span>
-        {render !== undefined ? render(inputs) : null}
+        {renderedComponent}
       </div>
       <div className="py-1 flex flex-col justify-around">
         {outputs.map((output, i) => (
@@ -89,6 +97,21 @@ function ChipNode({
           </div>
         ))}
       </div>
+      {renderedComponent !== null && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full"
+              onClick={() => updateNodeData(id, { showRender: !showRender })}
+            >
+              {showRender ? <IconEye /> : <IconEyeOff />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Toggle Visibility</TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
