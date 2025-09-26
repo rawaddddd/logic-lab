@@ -2,12 +2,12 @@ import { useCallback, useEffect } from "react";
 import { Circuit } from "../Simulation";
 import { circuitToFlow } from "../transform";
 import WireEdge from "../components/nodes/WireEdge";
-import { CustomNodes } from "./Nodes";
+import { CustomNodes } from "../components/nodes/Nodes";
 
 export const useCopyPaste = (
   circuit: Circuit,
   setNodes: (nodes: CustomNodes[]) => void,
-  setEdges: (edges: WireEdge[]) => void
+  setEdges: (edges: WireEdge[]) => void,
 ) => {
   const onCopyCapture = useCallback((event: ClipboardEvent) => {
     event.preventDefault();
@@ -23,15 +23,15 @@ export const useCopyPaste = (
 
     event.clipboardData?.setData(
       "logic-lab:inputPins",
-      JSON.stringify(selectedInputPinIndices)
+      JSON.stringify(selectedInputPinIndices),
     );
     event.clipboardData?.setData(
       "logic-lab:outputPins",
-      JSON.stringify(selectedOutputPinIndices)
+      JSON.stringify(selectedOutputPinIndices),
     );
     event.clipboardData?.setData(
       "logic-lab:components",
-      JSON.stringify(selectedComponentIndices)
+      JSON.stringify(selectedComponentIndices),
     );
   }, []);
 
@@ -39,13 +39,13 @@ export const useCopyPaste = (
     event.preventDefault();
 
     const inputPinsIds = JSON.parse(
-      event.clipboardData?.getData("logic-lab:inputPins") ?? "[]"
+      event.clipboardData?.getData("logic-lab:inputPins") ?? "[]",
     ) as number[];
     const outputPinsIds = JSON.parse(
-      event.clipboardData?.getData("logic-lab:outputPins") ?? "[]"
+      event.clipboardData?.getData("logic-lab:outputPins") ?? "[]",
     ) as number[];
     const componentsIds = JSON.parse(
-      event.clipboardData?.getData("logic-lab:components") ?? "[]"
+      event.clipboardData?.getData("logic-lab:components") ?? "[]",
     ) as number[];
 
     for (const inputPin of circuit.inputPins) {
